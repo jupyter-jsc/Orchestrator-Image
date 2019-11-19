@@ -4,7 +4,7 @@ Backend service for [JupyterHub](https://github.com/jupyter-jsc/Hub-Image).
 
 ## Mounts
 
-The following paths has to be mounted:
+The following paths have to be mounted:
 
 ```
 /etc/j4j/j4j_mount/j4j_common
