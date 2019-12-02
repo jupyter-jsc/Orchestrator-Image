@@ -2,7 +2,6 @@ import socket
 
 from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
-from nntplib import port
     
 def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, request_headers, escapedusername, servername, server_info):
     try:
