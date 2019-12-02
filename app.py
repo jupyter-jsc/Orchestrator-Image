@@ -111,6 +111,8 @@ class FlaskApp(Flask):
     log = None
     with open('/etc/j4j/j4j_mount/j4j_orchestrator/database.json') as f:
         database = json.loads(f.read())
+    with open('/etc/j4j/j4j_mount/j4j_orchestrator/database_tunnel.json') as f:
+        database_tunnel = json.loads(f.read())
     with open('/etc/j4j/j4j_mount/j4j_common/urls.json') as f:
         urls = json.loads(f.read())
     def __init__(self, *args, **kwargs):

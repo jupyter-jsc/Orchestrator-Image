@@ -70,7 +70,11 @@ class JobHandler(Resource):
                 # Find a random port, that's not already used by Jupyter@JSC
                 request_json['port'] = jobs_threads_worker.random_port(app.log,
                                                                        uuidcode,
-                                                                       app.database)
+                                                                       app.database,
+                                                                       app.database_tunnel)
+                
+                if request_json['port'] == 0:
+                    return  '{}'.format(request_json['port']), 539
             app.log.trace("{} - New Headers: {}".format(uuidcode, request_headers))
             app.log.trace("{} - New Json: {}".format(uuidcode, request_json))
             t = Thread(target=jobs_threads.post,

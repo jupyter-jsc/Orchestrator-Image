@@ -2,6 +2,7 @@ import socket
 
 from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
+from nntplib import port
     
 def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, request_headers, escapedusername, servername, server_info):
     try:
@@ -240,8 +241,9 @@ def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, k
         raise Exception("{} - J4J_Worker communication not successful. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
     return headers, delete_header
             
-def random_port(app_logger, uuidcode, database):
+def random_port(app_logger, uuidcode, database, database_tunnel):
     """Get a single random port."""
+    count = 0
     b = True
     while b:
         sock = socket.socket()
@@ -251,6 +253,15 @@ def random_port(app_logger, uuidcode, database):
         if len(utils_db.get_entry_port(app_logger,
                                        uuidcode,
                                        port,
-                                       database)) == 0:
+                                       database)) == 0 \
+        and len(utils_db.get_tunneldb_port(app_logger,
+                                           uuidcode,
+                                           port,
+                                           database_tunnel)) == 0:
             b = False
+            break
+        count += 1
+        if count > 20:
+            app_logger.error("{} - Could not find unused port in 20 trys. Return port 0. Last tried random port: {}".format(uuidcode, port))
+            return 0
     return port
