@@ -2,7 +2,7 @@ import socket
 
 from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
-    
+
 def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, request_headers, escapedusername, servername, server_info):
     try:
         app_logger.trace("{} - Call Create_get_header with: {} {} {} {} {}".format(uuidcode, request_headers, app_urls.get('hub', {}).get('url_proxy_route'), app_urls.get('hub', {}).get('url_token'), escapedusername, servername))
@@ -60,7 +60,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                                      uuidcode,
                                                      request_headers,
                                                      app_urls,
-                                                     app_database)        
+                                                     app_database)
     # All duplicated servers are deleted from the database and stopped
     app_logger.trace('{} - J4J_Worker_response_header: {}'.format(uuidcode, j4j_worker_response_header))
     try:

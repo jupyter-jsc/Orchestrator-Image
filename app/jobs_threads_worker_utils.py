@@ -14,6 +14,10 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
     app_logger.trace("{} - Create J4J_Worker_Get_Header".format(uuidcode))
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
+                                      request_headers.get("tokenurl"),
+                                      request_headers.get("tokeninfourl"),
+                                      request_headers.get("certpath"),
+                                      request_headers.get("scope"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -37,6 +41,10 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
     app_logger.trace("{} - Create J4J_Worker_Header".format(uuidcode))
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
+                                      request_headers.get("tokenurl"),
+                                      request_headers.get("tokeninfourl"),
+                                      request_headers.get("certpath"),
+                                      request_headers.get("scope"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
