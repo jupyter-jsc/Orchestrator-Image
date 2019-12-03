@@ -15,9 +15,6 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
                                       request_headers.get("tokenurl"),
-                                      request_headers.get("tokeninfourl"),
-                                      request_headers.get("certpath"),
-                                      request_headers.get("scope"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -34,9 +31,6 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
                      "refreshtoken": request_headers.get("refreshtoken"),
                      "accesstoken": accesstoken,
                      "tokenurl": request_headers.get("tokenurl"),
-                     "tokeninfourl": request_headers.get("tokeninfourl"),
-                     "certpath": request_headers.get("certpath"),
-                     "scope": request_headers.get("scope"),
                      "escapedusername": username }
     return worker_header
 
@@ -46,9 +40,6 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
                                       request_headers.get("tokenurl"),
-                                      request_headers.get("tokeninfourl"),
-                                      request_headers.get("certpath"),
-                                      request_headers.get("scope"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -68,9 +59,6 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
                          "accesstoken": accesstoken,
                          "escapedusername": username,
                          "tokenurl": request_headers.get("tokenurl"),
-                         "tokeninfourl": request_headers.get("tokeninfourl"),
-                         "certpath": request_headers.get("certpath"),
-                         "scope": request_headers.get("scope"),
                          "account": request_headers.get("account"),
                          "project": request_headers.get("project")}
     return j4j_worker_header
