@@ -96,11 +96,11 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                j4j_worker_response_header['expire'],
                                request_headers.get('escapedusername'),
                                request_headers.get('servername'))
-        
+
     if 'session' in j4j_worker_response_header:
         j4j_worker_header['X-UNICORE-SecuritySession'] = j4j_worker_response_header['X-UNICORE-SecuritySession']
     app_logger.trace("{} - J4J_Worker_Header: {}".format(uuidcode, j4j_worker_header))
-    
+
     j4j_worker_json = jobs_threads_worker_utils.create_json(app_logger,
                                                             uuidcode,
                                                             request_json)
@@ -127,7 +127,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
             j4j_worker_header['filedir'] = headers['filedir']
             j4j_worker_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
     except:
-        app_logger.exception("{} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))  
+        app_logger.exception("{} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
@@ -174,7 +174,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                               uuidcode,
                                               method,
                                               method_args)
-  
+
     except:
         app_logger.exception("{} - J4J_Worker communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
@@ -202,10 +202,8 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                    app_urls.get('hub', {}).get('url_token'))
         except:
             app_logger.exception("{} - Could not delete/destroy Job via J4J_Worker. {}".format(uuidcode, utils_common.remove_secret(request_headers)))
-            
-            
 
-            
+
 def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, kernelurl, filedir, port, account, project):
     # Create Header to communicate with J4J_Worker
     if len(delete_header) == 0:
@@ -218,7 +216,11 @@ def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, k
     delete_header['port'] = port
     delete_header['account'] = account
     delete_header['project'] = project
-    
+    delete_header["tokenurl"] = request_headers.get("tokenurl"),
+    delete_header["tokeninfourl"] = request_headers.get("tokeninfourl"),
+    delete_header["certpath"] =  request_headers.get("certpath"),
+    delete_header["scope"] = request_headers.get("scope"),
+
     # Send DELETE to J4J_Worker
     method = "DELETE"
     method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
@@ -239,7 +241,8 @@ def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, k
         app_logger.warning("{} - J4J_Worker communication not successful: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
         raise Exception("{} - J4J_Worker communication not successful. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
     return headers, delete_header
-            
+
+
 def random_port(app_logger, uuidcode, database, database_tunnel):
     """Get a single random port."""
     count = 0

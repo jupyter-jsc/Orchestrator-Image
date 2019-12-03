@@ -8,7 +8,7 @@ import app.jobs_threads as jt
 import json
 
 from threading import Thread
-from flask import request 
+from flask import request
 from flask_restful import Resource
 from flask import current_app as app
 

@@ -33,6 +33,10 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
                      "expire": str(expire),
                      "refreshtoken": request_headers.get("refreshtoken"),
                      "accesstoken": accesstoken,
+                     "tokenurl": request_headers.get("tokenurl"),
+                     "tokeninfourl": request_headers.get("tokeninfourl"),
+                     "certpath": request_headers.get("certpath"),
+                     "scope": request_headers.get("scope"),
                      "escapedusername": username }
     return worker_header
 
@@ -63,6 +67,10 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
                          "jhubtoken": request_headers.get("jhubtoken"),
                          "accesstoken": accesstoken,
                          "escapedusername": username,
+                         "tokenurl": request_headers.get("tokenurl"),
+                         "tokeninfourl": request_headers.get("tokeninfourl"),
+                         "certpath": request_headers.get("certpath"),
+                         "scope": request_headers.get("scope"),
                          "account": request_headers.get("account"),
                          "project": request_headers.get("project")}
     return j4j_worker_header
