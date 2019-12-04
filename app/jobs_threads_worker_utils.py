@@ -5,6 +5,8 @@ Created on May 13, 2019
 '''
 
 import requests
+import traceback
+
 from contextlib import closing
 
 from app.utils_file_loads import get_j4j_worker_token
@@ -99,9 +101,11 @@ def communicate(app_logger, uuidcode, method, method_args):
                 with closing(requests.get(method_args['url'],
                                           headers = method_args.get('headers', {}),
                                           verify = method_args.get('certificate', False),
-                                          timeout=0.00000000000000001)) as r:
+                                          timeout=0.5)) as r:
                     pass
             except requests.exceptions.ReadTimeout:
+                app_logger.debug("{} - DEBUG: ReadTimeout: {}".format(uuidcode, traceback.format_exc()))
                 pass
             except requests.exceptions.ConnectTimeout:
+                app_logger.debug("{} - DEBUG: ConnectTimeout: {}".format(uuidcode, traceback.format_exc()))
                 pass
