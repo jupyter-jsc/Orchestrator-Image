@@ -104,7 +104,6 @@ def communicate(app_logger, uuidcode, method, method_args):
                                           timeout=0.5)) as r:
                     pass
             except requests.exceptions.ReadTimeout:
-                app_logger.debug("{} - DEBUG: ReadTimeout: {}".format(uuidcode, traceback.format_exc()))
                 pass
             except requests.exceptions.ConnectTimeout:
                 app_logger.debug("{} - DEBUG: ConnectTimeout: {}".format(uuidcode, traceback.format_exc()))
