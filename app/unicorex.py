@@ -63,7 +63,7 @@ class UNICOREXHandler(Resource):
                             ret[system][account][group] = {}
                         for partition in resources.get(machine, {}).keys():
                             if partition not in ret[system][account][group].keys():
-                                ret[systme][account][group][partition] = {}
+                                ret[system][account][group][partition] = {}
         except:
             app.log.exception("UNICORE/X get failed. Bugfix required")
         return ret, 200
