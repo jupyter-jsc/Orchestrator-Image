@@ -42,11 +42,11 @@ class UNICOREXHandler(Resource):
                     with closing(requests.get(url, headers=h, verify=False)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json()
-                            self.log.trace("{} - {} returned {}".format(uuidcode, machine, r.json()))
+                            app.log.trace("{} - {} returned {}".format(uuidcode, machine, r.json()))
                         else:
-                            self.log.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
+                            app.log.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
                 except:
-                    self.log.exception("{} - Could not get user information from {}".format(uuidcode, machine))
+                    app.log.exception("{} - Could not get user information from {}".format(uuidcode, machine))
             ret = {}
             resources = utils_file_loads.get_resources()
             for system, xlogin in xlogins.items():
