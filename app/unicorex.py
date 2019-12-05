@@ -33,7 +33,7 @@ class UNICOREXHandler(Resource):
             machines = request_headers.get('machines', '').split(' ')
             h = { "Accept": "application/json",
                   "User-Agent": request_headers.get('User-Agent'),
-                  "Authorization": "Bearer {}".format(accesstoken) }
+                  "Authorization": "Bearer {}".format(request_headers.get('accesstoken')) }
             unicore = utils_file_loads.get_unicore()
             xlogins = {}
             for machine in machines:
