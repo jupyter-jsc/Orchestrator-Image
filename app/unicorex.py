@@ -53,9 +53,12 @@ class UNICOREXHandler(Resource):
             ret = {}
             resources = utils_file_loads.get_resources()
             for system, xlogin in xlogins.items():
+                ret[system]['!!DISCLAIMER!!'] = {}
                 if system not in ret.keys():
                     ret[system] = {}
                 for account in xlogin.get('availableUIDs', []):
+                    if account == '!!DISCLAIMER!!':
+                        continue
                     if account not in ret[system].keys():
                         ret[system][account] = {}
                     for group in xlogin.get('availableGroups', []):
