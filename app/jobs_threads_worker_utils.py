@@ -17,6 +17,7 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
                                       request_headers.get("tokenurl"),
+                                      request_headers.get("authorizeurl"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -33,6 +34,7 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
                      "refreshtoken": request_headers.get("refreshtoken"),
                      "accesstoken": accesstoken,
                      "tokenurl": request_headers.get("tokenurl"),
+                     "authorizeurl": request_headers.get("authorizeurl"),
                      "escapedusername": username }
     return worker_header
 
@@ -42,6 +44,7 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
                                       request_headers.get("tokenurl"),
+                                      request_headers.get("authorizeurl"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -61,6 +64,7 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
                          "accesstoken": accesstoken,
                          "escapedusername": username,
                          "tokenurl": request_headers.get("tokenurl"),
+                         "authorizeurl": request_headers.get("authorizeurl"),
                          "account": request_headers.get("account"),
                          "project": request_headers.get("project")}
     return j4j_worker_header

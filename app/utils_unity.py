@@ -15,7 +15,7 @@ from app.utils_common import remove_secret
 from app.utils_db import set_skip
 
 
-def renew_token(app_logger, uuidcode, token_url, refreshtoken, accesstoken, expire, jhubtoken, app_hub_url_proxy_route, app_hub_token_url, username, servername, app_database):
+def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, accesstoken, expire, jhubtoken, app_hub_url_proxy_route, app_hub_token_url, username, servername, app_database):
     if int(expire) - time.time() > 480:
         return accesstoken, expire
     app_logger.info("{} - Renew Token".format(uuidcode))
@@ -25,7 +25,7 @@ def renew_token(app_logger, uuidcode, token_url, refreshtoken, accesstoken, expi
         token_url = unity.get('links').get('token')
     tokeninfo_url = unity[token_url].get('links', {}).get('tokeninfo')
     cert_path = unity[token_url].get('certificate', False)
-    scope = ' '.join(unity[token_url].get('scope'))
+    scope = ' '.join(unity[authorize_url].get('scope'))
     b64key = base64.b64encode(bytes('{}:{}'.format(unity[token_url].get('client_id'), unity[token_url].get('client_secret')), 'utf-8')).decode('utf-8')
     data = {'refresh_token': refreshtoken,
             'grant_type': 'refresh_token',

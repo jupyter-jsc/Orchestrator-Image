@@ -217,6 +217,7 @@ def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, k
     delete_header['account'] = account
     delete_header['project'] = project
     delete_header["tokenurl"] = request_headers.get("tokenurl"),
+    delete_header["authorizeurl"] = request_headers.get("authorizeurl"),
 
     # Send DELETE to J4J_Worker
     method = "DELETE"
