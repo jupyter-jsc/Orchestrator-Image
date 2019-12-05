@@ -44,8 +44,8 @@ class UNICOREXHandler(Resource):
                                               headers=h,
                                               verify=False)) as r:
                         if r.status_code == 200:
-                            xlogins[machine] = r.json()
-                            app.log.trace("{} - {} returned {}".format(uuidcode, machine, r.json()))
+                            xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
+                            app.log.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
                         else:
                             app.log.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
                 except:
