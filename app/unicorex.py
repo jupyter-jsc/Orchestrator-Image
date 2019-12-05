@@ -4,13 +4,14 @@ Created on May 13, 2019
 @author: Tim Kreuzer
 '''
 
+import requests
+
 from flask import request
 from flask_restful import Resource
 from flask import current_app as app
-from threading import Thread
+from contextlib import closing
 
-from app import utils_common, jobs_threads_worker, utils_unity, utils_file_loads
-from app import jobs_threads
+from app import utils_common, utils_file_loads
 
 class UNICOREXHandler(Resource):
     def get(self):
@@ -39,7 +40,9 @@ class UNICOREXHandler(Resource):
             for machine in machines:
                 url = unicore.get('links', {}).get(machine, '<no_url_found>')
                 try:
-                    with closing(requests.get(url, headers=h, verify=False)) as r:
+                    with closing(requests.get(url,
+                                              headers=h,
+                                              verify=False)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json()
                             app.log.trace("{} - {} returned {}".format(uuidcode, machine, r.json()))
