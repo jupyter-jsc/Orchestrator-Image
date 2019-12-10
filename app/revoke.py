@@ -8,7 +8,7 @@ import app.jobs_threads as jt
 import json
 
 from threading import Thread
-from flask import request 
+from flask import request
 from flask_restful import Resource
 from flask import current_app as app
 
@@ -44,32 +44,38 @@ class RevokeToken(Resource):
                                          app_urls,
                                          app_database)
                     app_logger.trace("{} - Delete server response {}".format(uuidcode, del_resp))
-                
+
         app_logger.trace("{} - Call utils_file_loads.get_unity()".format(uuidcode))
         unity_file = get_unity()
+        token_url = request_headers.get('tokenurl', '')
+        revoke_url = unity_file[token_url]['links']['revoke']
+        admin_tokens = unity_file[token_url]['links']['admin_tokens']
+        admin_basic_token = unity_file[token_url]['admin_basic_token']
+        cert = unity_file[token_url].get('certificate', False)
+        immune_tokens = unity_file[token_url].get('immune_tokens', [])
+        client_id = unity_file[token_url]['client_id']
 
         # Revoke all tokens, but these we just sent in the header. Useful when the users logs in. So old tokens will be removed
         if request_headers.get('allbutthese', 'false').lower() == 'true':
             username = 'UID={}'.format(request_headers.get('username'))
             headers = { 'Content-Type': 'application/json',
-                        'Authorization': 'Basic {}'.format(unity_file.get('admin_basic_token')) }
-            method_args = {"url": unity_file['links']['admin_tokens'],
+                        'Authorization': 'Basic {}'.format(admin_basic_token) }
+            method_args = {"url": admin_tokens,
                            "headers": headers,
-                           "certificate": unity_file['certificate']}
-            all_tokens_list = communicate(app_logger, 
+                           "certificate": cert}
+            all_tokens_list = communicate(app_logger,
                                           uuidcode,
                                           "GET",
                                           method_args)
-            immune_tokens = unity_file.get('immune_tokens', [])
             immune_tokens.append(request_json['accesstoken'])
             immune_tokens.append(request_json['refreshtoken'])
             to_revoke_list = [x for x in all_tokens_list if json.loads(x.get('contents', {}).get('userInfo', '{}')).get('x500name') == username and x.get('value', '') not in immune_tokens]
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
-            method_args = {"url": unity_file['links']['revoke'],
+            method_args = {"url": revoke_url,
                            "headers": headers,
-                           "data": {"client_id": unity_file['client_id'],
+                           "data": {"client_id": client_id,
                                     "logout": 'false'},
-                           "certificate": unity_file['certificate']}
+                           "certificate": cert}
             for token_dict in to_revoke_list:
                 token_type = token_dict.get('type', 'oauth2Access')
                 if token_type == 'oauth2Access':
@@ -92,11 +98,11 @@ class RevokeToken(Resource):
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
             tokens = {'access_token': request_json['accesstoken'],
                       'refresh_token': request_json['refreshtoken']}
-            method_args = {"url": unity_file['links']['revoke'],
+            method_args = {"url": revoke_url,
                            "headers": headers,
-                           "data": {"client_id": unity_file['client_id'],
+                           "data": {"client_id": client_id,
                                     "logout": 'true'},
-                           "certificate": unity_file['certificate']}
+                           "certificate": cert}
             app_logger.debug("{} - Unity communication to revoke token.".format(uuidcode))
             for key, value in tokens.items():
                 method_args['data']['token_type_hint'] = key

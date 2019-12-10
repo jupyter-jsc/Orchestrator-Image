@@ -30,3 +30,13 @@ def get_unity():
     with open('/etc/j4j/j4j_mount/j4j_common/unity.json', 'r') as f:
         unity = json.load(f)
     return unity
+
+def get_unicore():
+    with open('/etc/j4j/j4j_mount/j4j_common/unicore.json') as f:
+        unicore_file = json.load(f)
+    return unicore_file
+
+def get_resources():
+    with open('/etc/j4j/j4j_mount/j4j_common/resources.json') as f:
+        resources = json.load(f)
+    return resources

@@ -41,6 +41,23 @@ def get_entry_servername(app_logger, uuidcode, servername, database):
                 app_logger.trace("{} - Results: {}".format(uuidcode, results))
     return results
 
+def get_tunneldb_port(app_logger, uuidcode, port, database):
+    with closing(psycopg2.connect(host=database.get('host'),
+                                  port=database.get('port'),
+                                  user=database.get('user'),
+                                  password=database.get('password'),
+                                  database=database.get('database'))) as con: # auto closes
+        with closing(con.cursor()) as cur: # auto closes
+            with con: # auto commit
+                cmd = "SELECT hostname FROM tunnels WHERE port = %s"
+                app_logger.trace("{} - Execute: {}, port: {}".format(uuidcode, cmd, port))
+                cur.execute(cmd,
+                            (str(port), ))
+                results = cur.fetchall()
+                app_logger.trace("{} - Results: {}".format(uuidcode, results))
+    return results
+    
+
 def get_entry_port(app_logger, uuidcode, port, database):
     # return list of results
     with closing(psycopg2.connect(host=database.get('host'),

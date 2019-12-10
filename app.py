@@ -18,6 +18,7 @@ from flask import Flask
 from flask_restful import Api
 
 from app.jobs import JobHandler
+from app.unicorex import UNICOREXHandler
 from app.health import HealthHandler
 from app.spawning import SpawningHandler
 from app.revoke import RevokeToken
@@ -110,9 +111,11 @@ while True:
 class FlaskApp(Flask):
     log = None
     with open('/etc/j4j/j4j_mount/j4j_orchestrator/database.json') as f:
-        database = json.loads(f.read())
+        database = json.load(f)
+    with open('/etc/j4j/j4j_mount/j4j_orchestrator/database_tunnel.json') as f:
+        database_tunnel = json.load(f)
     with open('/etc/j4j/j4j_mount/j4j_common/urls.json') as f:
-        urls = json.loads(f.read())
+        urls = json.load(f)
     def __init__(self, *args, **kwargs):
         self.log = logging.getLogger('J4J_Orchestrator')
         health_url = self.urls.get('worker', {}).get('url_health')
@@ -138,6 +141,7 @@ api = Api(application)
 
 # Add endpoints
 api.add_resource(JobHandler, '/jobs')
+api.add_resource(UNICOREXHandler, '/unicorex')
 api.add_resource(HealthHandler, '/health')
 api.add_resource(SpawningHandler, '/spawning')
 api.add_resource(DatabaseHandler, '/database')
