@@ -16,8 +16,8 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
     app_logger.trace("{} - Create J4J_Worker_Get_Header".format(uuidcode))
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
-                                      request_headers.get("tokenurl"),
-                                      request_headers.get("authorizeurl"),
+                                      request_headers.get("tokenurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"),
+                                      request_headers.get("authorizeurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -33,8 +33,8 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
                      "expire": str(expire),
                      "refreshtoken": request_headers.get("refreshtoken"),
                      "accesstoken": accesstoken,
-                     "tokenurl": request_headers.get("tokenurl"),
-                     "authorizeurl": request_headers.get("authorizeurl"),
+                     "tokenurl": request_headers.get("tokenurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"),
+                     "authorizeurl": request_headers.get("authorizeurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"),
                      "escapedusername": username }
     return worker_header
 
@@ -43,8 +43,8 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
     app_logger.trace("{} - Create J4J_Worker_Header".format(uuidcode))
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
-                                      request_headers.get("tokenurl"),
-                                      request_headers.get("authorizeurl"),
+                                      request_headers.get("tokenurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"),
+                                      request_headers.get("authorizeurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"),
                                       request_headers.get("refreshtoken"),
                                       request_headers.get('accesstoken'),
                                       request_headers.get('expire'),
@@ -63,8 +63,8 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
                          "jhubtoken": request_headers.get("jhubtoken"),
                          "accesstoken": accesstoken,
                          "escapedusername": username,
-                         "tokenurl": request_headers.get("tokenurl"),
-                         "authorizeurl": request_headers.get("authorizeurl"),
+                         "tokenurl": request_headers.get("tokenurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"),
+                         "authorizeurl": request_headers.get("authorizeurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"),
                          "account": request_headers.get("account"),
                          "project": request_headers.get("project")}
     return j4j_worker_header

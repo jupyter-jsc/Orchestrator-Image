@@ -30,6 +30,10 @@ class JobHandler(Resource):
                 if 'Token' in key: # refresh, jhub, access
                     key = key.replace('-', '_')
                 request_headers[key.lower()] = value
+            if not request_headers.get('tokenurl', None):
+                request_headers['tokenurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"
+            if not request_headers.get('authorizeurl', None):
+                request_headers['authorizeurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"
             app.log.debug("{} - Start Thread to communicate with worker".format(uuidcode))
             t = Thread(target=jobs_threads.get,
                        args=(app.log,
@@ -61,6 +65,10 @@ class JobHandler(Resource):
                 if 'Token' in key: # refresh, jhub, access
                     key = key.replace('-', '_')
                 request_headers[key.lower()] = value
+            if not request_headers.get('tokenurl', None):
+                request_headers['tokenurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"
+            if not request_headers.get('authorizeurl', None):
+                request_headers['authorizeurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"
             request_json = {}
             for key, value in request.json.items():
                 if 'Token' in key: # refresh, jhub, access
@@ -105,6 +113,10 @@ class JobHandler(Resource):
                 if 'Token' in key: # refresh, jhub, access
                     key = key.replace('-', '_')
                 request_headers[key.lower()] = value
+            if not request_headers.get('tokenurl', None):
+                request_headers['tokenurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"
+            if not request_headers.get('authorizeurl', None):
+                request_headers['authorizeurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"
             app.log.debug("{} - Start Delete Thread".format(uuidcode))
             t = Thread(target=jobs_threads.delete,
                        args=(app.log,
