@@ -35,7 +35,8 @@ class RevokeToken(Resource):
                                 'refreshtoken': request_json['refreshtoken'],
                                 'expire': request_headers['expire'],
                                 'tokenurl': request_headers['tokenurl'],
-                                'authorizeurl': request_headers['authorizeurl']
+                                'authorizeurl': request_headers['authorizeurl'],
+                                'escapedusername': request_headers['escapedusername']
                                 }
                 for server in servernames:
                     delete_header['servername'] = server
