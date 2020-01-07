@@ -79,6 +79,12 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                                                         request_headers.get('servername'),
                                                         request_headers.get('escapedusername'),
                                                         info.get('jhubtoken'))
+                # Unblock this server for other calls
+                utils_db.set_skip(app_logger,
+                                  uuidcode,
+                                  request_headers.get('servername'),
+                                  app_database,
+                                  'False')
             else:
                 # Let's J4J_Worker do the work. We just call it.
                 jobs_threads_worker.check_unicore_job_status(app_logger,
@@ -91,12 +97,13 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                                                              info)
         except:
             app_logger.exception("Could not check status")
-        # Unblock this server for other calls
-        utils_db.set_skip(app_logger,
-                          uuidcode,
-                          request_headers.get('servername'),
-                          app_database,
-                          'False')
+            # Unblock this server for other calls
+            utils_db.set_skip(app_logger,
+                              uuidcode,
+                              request_headers.get('servername'),
+                              app_database,
+                              'False')
+        
     except:
         app_logger.exception("Unexpected error. Bugfix required")
     return
