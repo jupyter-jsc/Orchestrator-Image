@@ -69,5 +69,6 @@ class UNICOREXHandler(Resource):
                                 ret[system][account][group][partition] = {}
         except:
             app.log.exception("UNICORE/X get failed. Bugfix required")
+            return '', 500
         return ret, 200
 
