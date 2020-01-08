@@ -45,13 +45,15 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                 with closing(requests.post(token_url,
                                            headers = headers,
                                            data = data,
-                                           verify = cert_path)) as r:
+                                           verify = cert_path,
+                                           timeout = 10)) as r:
                     app_logger.trace("{} - Unity Response: {} {} {} {}".format(uuidcode, r.text, r.status_code, r.headers, r.json))
                     accesstoken = r.json().get('access_token')
                 app_logger.info("{} - Get to {}".format(uuidcode, tokeninfo_url))
                 with closing(requests.get(tokeninfo_url,
                                           headers = { 'Authorization': 'Bearer {}'.format(accesstoken) },
-                                          verify = cert_path)) as r:
+                                          verify = cert_path,
+                                          timeout = 10)) as r:
                     app_logger.trace("{} - Unity Response: {} {} {} {}".format(uuidcode, r.text, r.status_code, r.headers, r.json))
                     expire = r.json().get('exp')
                     break
@@ -99,8 +101,8 @@ def communicate(app_logger, uuidcode, method, method_args, success_code=200):
             with closing(requests.post(method_args['url'],
                                        headers = method_args.get('headers', {}),
                                        data = method_args.get('data', "{}"),
-                                       verify = method_args.get('certificate', False)
-                                       )) as r:
+                                       verify = method_args.get('certificate', False),
+                                       timeout = 10)) as r:
                 if r.status_code != success_code:
                     app_logger.warning("{} - Unity communication response: {} {}".format(uuidcode, r.text, r.status_code))
                     app_logger.warning("{} - arguments: method_args: {}".format(uuidcode, remove_secret(method_args)))
@@ -113,8 +115,8 @@ def communicate(app_logger, uuidcode, method, method_args, success_code=200):
             app_logger.info("{} - Get to {}".format(uuidcode, method_args.get('url', '<no_url>')))
             with closing(requests.get(method_args['url'],
                                       headers = method_args.get('headers', {}),
-                                      verify = method_args.get('certificate', False)
-                                      )) as r:
+                                      verify = method_args.get('certificate', False),
+                                      timeout = 10)) as r:
                 if r.status_code != success_code:
                     app_logger.warning("{} - Unity communication response: {} {}".format(uuidcode, r.text, r.status_code))
                     app_logger.warning("{} - arguments: method_args: {}".format(uuidcode, remove_secret(method_args)))
