@@ -180,6 +180,6 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
             if docker:
                 app_logger.exception("{} - Could not delete docker container".format(uuidcode))
             else:
-                app_logger.exception("{} - J4J_Worker communication failed. {} {}".format(uuidcode, server))
+                app_logger.exception("{} - J4J_Worker communication failed. {}".format(uuidcode, server))
 
     return headers

@@ -20,21 +20,25 @@ from app import utils_db
 # is not finished yet) the starting process would be canceled 
 class SpawningHandler(Resource):
     def post(self):
-        # Track actions through different webservices.
-        uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-        app.log.info("{} - Set Spawning".format(uuidcode))
-        app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
-        app.log.trace("{} - Json: {}".format(uuidcode, json.dumps(request.json)))
-
-        # Check for the J4J intern token
-        utils_common.validate_auth(app.log,
-                                   uuidcode,
-                                   request.headers.get('intern-authorization', None))
-        if request.json.get('value') and request.json.get('servername'):
-            utils_db.set_spawning(app.log,
-                                  uuidcode,
-                                  request.json.get('servername'),
-                                  app.database,
-                                  request.json.get('value'))
-            return '', 202
-        return '', 422
+        try:
+            # Track actions through different webservices.
+            uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
+            app.log.info("{} - Set Spawning".format(uuidcode))
+            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.trace("{} - Json: {}".format(uuidcode, json.dumps(request.json)))
+    
+            # Check for the J4J intern token
+            utils_common.validate_auth(app.log,
+                                       uuidcode,
+                                       request.headers.get('intern-authorization', None))
+            if request.json.get('value') and request.json.get('servername'):
+                utils_db.set_spawning(app.log,
+                                      uuidcode,
+                                      request.json.get('servername'),
+                                      app.database,
+                                      request.json.get('value'))
+                return '', 202
+            return '', 422
+        except:
+            app.log.error("SpawningHandler.post failed. Bugfix required")
+            return '', 500
