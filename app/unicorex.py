@@ -43,7 +43,7 @@ class UNICOREXHandler(Resource):
                     with closing(requests.get(url,
                                               headers=h,
                                               verify=False,
-                                              timeout=10)) as r:
+                                              timeout=120)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
                             app.log.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))

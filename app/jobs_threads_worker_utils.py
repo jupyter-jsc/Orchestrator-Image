@@ -89,16 +89,14 @@ def communicate(app_logger, uuidcode, method, method_args):
         with closing(requests.delete(method_args['url'],
                                      headers = method_args.get('headers', {}),
                                      json = method_args.get('json', {}),
-                                     verify = method_args.get('certificate', False),
-                                     timeout = 10)) as r:
+                                     verify = method_args.get('certificate', False))) as r:
             app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
             return r.text, r.status_code, r.headers
     elif method == "POST":
         with closing(requests.post(method_args['url'],
                                    headers = method_args.get('headers', {}),
                                    json = method_args.get('json', {}),
-                                   verify = method_args.get('certificate', False),
-                                   timeout = 10)) as r:
+                                   verify = method_args.get('certificate', False))) as r:
             app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
             return r.text, r.status_code, r.headers
     elif method == "GET":
