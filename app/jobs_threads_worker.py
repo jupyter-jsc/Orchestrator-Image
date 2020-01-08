@@ -16,6 +16,11 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                                                                     app_database)
     except:
         app_logger.exception("{} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
+        utils_db.set_skip(app_logger,
+                          uuidcode,
+                          request_headers.get('servername'),
+                          app_database,
+                          'False')
         if server_info.get('system', None):
             error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(server_info.get('system'))
         else:
@@ -29,16 +34,17 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                                 escapedusername,
                                 servername)
         return
-    # call worker get (fire and forget)
-    worker_header['kernelurl'] = server_info.get('kernelurl')
-    worker_header['filedir'] = server_info.get('filedir')
-    worker_header['system'] = server_info.get('system')
-    worker_header['port'] = server_info.get('port')
-    worker_header['account'] = server_info.get('account')
-    worker_header['project'] = server_info.get('project')
-    worker_header['jhubtoken'] = server_info.get('jhubtoken')
-    worker_header['spawning'] = server_info.get('spawning')
     try:
+        # call worker get (fire and forget)
+        worker_header['kernelurl'] = server_info.get('kernelurl')
+        worker_header['filedir'] = server_info.get('filedir')
+        worker_header['system'] = server_info.get('system')
+        worker_header['port'] = server_info.get('port')
+        worker_header['account'] = server_info.get('account')
+        worker_header['project'] = server_info.get('project')
+        worker_header['jhubtoken'] = server_info.get('jhubtoken')
+        worker_header['spawning'] = server_info.get('spawning')
+    
         method = "GET"
         method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
                        "headers":worker_header,
@@ -51,6 +57,11 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                                               method_args)
 
     except:
+        utils_db.set_skip(app_logger,
+                          uuidcode,
+                          request_headers.get('servername'),
+                          app_database,
+                          'False')
         app_logger.exception("{} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
 
 
