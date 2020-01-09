@@ -43,12 +43,14 @@ class UNICOREXHandler(Resource):
                     with closing(requests.get(url,
                                               headers=h,
                                               verify=False,
-                                              timeout=120)) as r:
+                                              timeout=1800)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
                             app.log.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
                         else:
                             app.log.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
+                except requests.exceptions.ConnectTimeout:
+                    app.log.exception("{} - Timeout (1800) reached".format(uuidcode))
                 except:
                     app.log.exception("{} - Could not get user information from {}".format(uuidcode, machine))
             ret = {}

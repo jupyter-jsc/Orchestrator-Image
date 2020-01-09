@@ -86,19 +86,29 @@ def communicate(app_logger, uuidcode, method, method_args):
     app_logger.debug("{} - J4J_Worker communication. {} {}".format(uuidcode, method_args.get('url', '<no url>'), method))
     app_logger.trace("{} - J4J_Worker communication. Method_args: {}".format(uuidcode, method_args))
     if method == "DELETE":
-        with closing(requests.delete(method_args['url'],
-                                     headers = method_args.get('headers', {}),
-                                     json = method_args.get('json', {}),
-                                     verify = method_args.get('certificate', False))) as r:
-            app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
-            return r.text, r.status_code, r.headers
+        try:
+            with closing(requests.delete(method_args['url'],
+                                         headers = method_args.get('headers', {}),
+                                         json = method_args.get('json', {}),
+                                         verify = method_args.get('certificate', False),
+                                         timeout=1800)) as r:
+                app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                return r.text, r.status_code, r.headers
+        except requests.exceptions.ConnectTimeout:
+            app_logger.exception("{} - Timeout (1800) reached".format(uuidcode))
+            raise Exception("{} - Timeout".format(uuidcode))
     elif method == "POST":
-        with closing(requests.post(method_args['url'],
-                                   headers = method_args.get('headers', {}),
-                                   json = method_args.get('json', {}),
-                                   verify = method_args.get('certificate', False))) as r:
-            app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
-            return r.text, r.status_code, r.headers
+        try:
+            with closing(requests.post(method_args['url'],
+                                       headers = method_args.get('headers', {}),
+                                       json = method_args.get('json', {}),
+                                       verify = method_args.get('certificate', False),
+                                       timeout=21600)) as r:
+                app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                return r.text, r.status_code, r.headers
+        except requests.exceptions.ConnectTimeout:
+            app_logger.exception("{} - Timeout (21600) reached".format(uuidcode))
+            raise Exception("{} - Timeout".format(uuidcode))
     elif method == "GET":
         if method_args.get('fire_and_forget', False):
             try:

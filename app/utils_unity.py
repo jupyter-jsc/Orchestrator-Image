@@ -46,7 +46,7 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                                            headers = headers,
                                            data = data,
                                            verify = cert_path,
-                                           timeout = 120)) as r:
+                                           timeout = 1800)) as r:
                     app_logger.trace("{} - Unity Response: {} {} {} {}".format(uuidcode, r.text, r.status_code, r.headers, r.json))
                     accesstoken = r.json().get('access_token')
                 app_logger.info("{} - Get to {}".format(uuidcode, tokeninfo_url))
