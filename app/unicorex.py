@@ -59,13 +59,15 @@ class UNICOREXHandler(Resource):
             for system, xlogin in xlogins.items():
                 if system not in ret.keys():
                     ret[system] = {}
-                # {'UID': 'di76bey', 'availableGroups': [], 'availableUIDs': ['di76bey']}
                 for account in xlogin.get('availableUIDs', []):
                     if account == '!!DISCLAIMER!!':
                         continue
                     if account not in ret[system].keys():
                         ret[system][account] = {}
-                    for group in xlogin.get('availableGroups', ["default"]):
+                    groups = xlogin.get('availableGroups', [])
+                    if len(groups) == 0:
+                        groups = ["default"]
+                    for group in groups:
                         if group not in ret[system][account].keys():
                             ret[system][account][group] = {}
                         for partition in resources.get(machine, {}).keys():
