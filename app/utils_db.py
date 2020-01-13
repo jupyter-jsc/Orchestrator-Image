@@ -33,7 +33,7 @@ def get_entry_servername(app_logger, uuidcode, servername, database):
                                   database=database.get('database'))) as con: # auto closes
         with closing(con.cursor()) as cur: # auto closes
             with con: # auto commit
-                cmd = "SELECT kernelurl, filesurl, port, account, project FROM server WHERE servername = %s"
+                cmd = "SELECT system, kernelurl, filesurl, port, account, project FROM server WHERE servername = %s"
                 app_logger.trace("{} - Execute: {}, servername: {}".format(uuidcode, cmd, servername))
                 cur.execute(cmd,
                             (servername, ))
