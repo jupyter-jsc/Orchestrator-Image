@@ -158,8 +158,8 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
     for server in servers:
         docker = False
         try:
-            kernelurl, filedir, port, account, project = server
-            if kernelurl.lower() == "docker":
+            system, kernelurl, filedir, port, account, project = server
+            if system.lower() == "docker":
                 jobs_threads_docker.delete_docker(app_logger,
                                                   uuidcode,
                                                   request_headers.get('servername'),
@@ -171,6 +171,7 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
                                                                         request_headers,
                                                                         delete_header,
                                                                         app_urls,
+                                                                        system,
                                                                         kernelurl,
                                                                         filedir,
                                                                         port,

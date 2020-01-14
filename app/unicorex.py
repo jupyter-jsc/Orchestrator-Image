@@ -38,11 +38,12 @@ class UNICOREXHandler(Resource):
             unicore = utils_file_loads.get_unicore()
             xlogins = {}
             for machine in machines:
-                url = unicore.get('links', {}).get(machine, '<no_url_found>')
+                url = unicore.get(machine, {}).get('link', '<no_url_found_for_{}>'.format(machine))
+                cert = unicore.get(machine, {}).get('certificate', False)
                 try:
                     with closing(requests.get(url,
                                               headers=h,
-                                              verify=False,
+                                              verify=cert,
                                               timeout=1800)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
@@ -63,7 +64,10 @@ class UNICOREXHandler(Resource):
                         continue
                     if account not in ret[system].keys():
                         ret[system][account] = {}
-                    for group in xlogin.get('availableGroups', []):
+                    groups = xlogin.get('availableGroups', [])
+                    if len(groups) == 0:
+                        groups = ["default"]
+                    for group in groups:
                         if group not in ret[system][account].keys():
                             ret[system][account][group] = {}
                         for partition in resources.get(machine, {}).keys():

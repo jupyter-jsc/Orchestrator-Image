@@ -215,13 +215,14 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
             app_logger.exception("{} - Could not delete/destroy Job via J4J_Worker. {}".format(uuidcode, utils_common.remove_secret(request_headers)))
 
 
-def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, kernelurl, filedir, port, account, project):
+def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, system, kernelurl, filedir, port, account, project):
     # Create Header to communicate with J4J_Worker
     if len(delete_header) == 0:
         # It's the first server with this name we want to delete. So we have to load the basic stuff
         for key, value in request_headers.items():
             delete_header[key] = value
         delete_header['Intern-Authorization'] = utils_file_loads.get_j4j_worker_token()
+    delete_header['system'] = system
     delete_header['kernelurl'] = kernelurl
     delete_header['filedir'] = filedir
     delete_header['port'] = port
