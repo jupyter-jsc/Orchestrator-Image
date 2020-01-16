@@ -122,8 +122,8 @@ def communicate(app_logger, uuidcode, method, method_args, success_code=200):
                     app_logger.warning("{} - arguments: method_args: {}".format(uuidcode, remove_secret(method_args)))
                     raise Exception("{} - Unity communication failed".format(uuidcode))
                 else:
-                    app_logger.trace("{} - {} {} {}".format(uuidcode, r.status_code, r.text, r.headers))
-                    app_logger.trace("{} - Unity call successful {}".format(uuidcode, r.json()))
-                    return r.json()
+                    app_logger.trace("{} - Unity call successful".format(uuidcode))
+                    ret = {k: str(v).encode("utf-8") for k,v in r.json().items()}
+                    return ret
         except:
             app_logger.exception("{} - Unity communication failed".format(uuidcode))
