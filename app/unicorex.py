@@ -92,7 +92,7 @@ class UNICOREXHandler(Resource):
             url = app_urls.get('hub', {}).get('url_useraccs', '<No_url_found>')
             url = url.replace('<user>', request_headers.get('username'))
             hub_header = {'uuidcode': uuidcode,
-                          'Intern-Authorization': get_jhubtoken()}
+                          'Intern-Authorization': utils_file_loads.get_jhubtoken()}
             hub_json = { 'useraccs': ret }
             with closing(requests.post(url,
                                        headers=hub_header,
