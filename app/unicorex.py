@@ -94,6 +94,7 @@ class UNICOREXHandler(Resource):
             hub_header = {'uuidcode': uuidcode,
                           'Intern-Authorization': utils_file_loads.get_jhubtoken()}
             hub_json = { 'useraccs': ret }
+            app_logger.trace("{} - Send useraccs to jupyterhub: {} {} {}".format(uuidcode, url, hub_header, hub_json))
             with closing(requests.post(url,
                                        headers=hub_header,
                                        json=hub_json,
