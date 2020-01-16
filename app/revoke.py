@@ -73,7 +73,7 @@ class RevokeToken(Resource):
                                               method_args)
                 immune_tokens.append(request_json['accesstoken'])
                 immune_tokens.append(request_json['refreshtoken'])
-                to_revoke_list = [x for x in all_tokens_list if json.loads(x.get('contents', {}).get('userInfo', '{}')).get('x500name') == username and x.get('value', '') not in immune_tokens]
+                to_revoke_list = [x for x in all_tokens_list if json.loads(x.get('contents', {}).get('userInfo', {})).get('x500name') == username and x.get('value', '') not in immune_tokens]
                 headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
                 method_args = {"url": revoke_url,
                                "headers": headers,
