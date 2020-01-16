@@ -62,13 +62,13 @@ class UNICOREXHandler(Resource):
                                               timeout=1800)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
-                            app.log.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
+                            app_logger.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
                         else:
-                            app.log.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
+                            app_logger.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
                 except requests.exceptions.ConnectTimeout:
-                    app.log.exception("{} - Timeout (1800) reached".format(uuidcode))
+                    app_logger.exception("{} - Timeout (1800) reached".format(uuidcode))
                 except:
-                    app.log.exception("{} - Could not get user information from {}".format(uuidcode, machine))
+                    app_logger.exception("{} - Could not get user information from {}".format(uuidcode, machine))
             ret = {}
             resources = utils_file_loads.get_resources()
             for system, xlogin in xlogins.items():
@@ -123,7 +123,7 @@ class UNICOREXHandler(Resource):
                 else:
                     app_logger.error("{} - Usercc update sent wrong status_code: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
         except:
-            app.log.exception("UNICORE/X get failed. Bugfix required")
+            app_logger.exception("UNICORE/X get failed. Bugfix required")
             return '', 500
         return ret, 200
 
