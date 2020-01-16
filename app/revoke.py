@@ -116,7 +116,7 @@ class RevokeToken(Resource):
                                 "POST",
                                 method_args)
         except:
-            app_logger.error("Revoke.post_thread failed. Bugfix required")
+            app_logger.exception("Revoke.post_thread failed. Bugfix required")
 
     def post(self):
         try:
@@ -146,5 +146,5 @@ class RevokeToken(Resource):
             t.start()
             return '', 202
         except:
-            app.log.error("Revoke.post failed. Bugfix required")
+            app.log.exception("Revoke.post failed. Bugfix required")
             return '', 500

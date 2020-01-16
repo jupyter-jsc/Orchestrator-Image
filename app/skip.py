@@ -37,5 +37,5 @@ class SkipHandler(Resource):
                 return '', 202
             return '', 422
         except:
-            app.log.error("SkipHandler.post failed. Bugfix required")
+            app.log.exception("SkipHandler.post failed. Bugfix required")
             return '', 500

@@ -40,5 +40,5 @@ class SpawningHandler(Resource):
                 return '', 202
             return '', 422
         except:
-            app.log.error("SpawningHandler.post failed. Bugfix required")
+            app.log.exception("SpawningHandler.post failed. Bugfix required")
             return '', 500

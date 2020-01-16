@@ -88,40 +88,40 @@ class UNICOREXHandler(Resource):
                         for partition in resources.get(machine, {}).keys():
                             if partition not in ret[system][account][group].keys():
                                 ret[system][account][group][partition] = {}
-        # send update to jhub
-        url = app_urls.get('hub', {}).get('url_useraccs', '<No_url_found>')
-        url = url.replace('<user>', request_headers.get('username'))
-        hub_header = {'uuidcode': uuidcode,
-                      'Intern-Authorization': get_jhubtoken()}
-        hub_json = { 'useraccs': ret }
-        with closing(requests.post(url,
-                                   headers=hub_header,
-                                   json=hub_json,
-                                   verify=False,
-                                   timeout=1800)) as r:
-            if r.status_code == 204:
-                app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
-            elif r.status_code == 503:
-                app_logger.info("{} - Try to remove the proxys for the dead host".format(uuidcode))
-                remove_proxy_route(app_logger,
-                                   uuidcode,
-                                   app_urls.get('hub', {}).get('url_proxy_route', '<no_url_found>'),
-                                   request_headers.get('jhubtoken'),
-                                   request_headers.get('username'),
-                                   '')
-                # try again
-                with closing(requests.post(url,
-                                           headers = hub_header,
-                                           json = hub_json,
-                                           verify = False,
-                                           timeout = 1800)) as r2:
-                    if r2.status_code == 204:
-                        app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
-                        return
-                    else:
-                        app_logger.error("{} - Useracc update sent wrong status_code: {} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
-            else:
-                app_logger.error("{} - Usercc update sent wrong status_code: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+            # send update to jhub
+            url = app_urls.get('hub', {}).get('url_useraccs', '<No_url_found>')
+            url = url.replace('<user>', request_headers.get('username'))
+            hub_header = {'uuidcode': uuidcode,
+                          'Intern-Authorization': get_jhubtoken()}
+            hub_json = { 'useraccs': ret }
+            with closing(requests.post(url,
+                                       headers=hub_header,
+                                       json=hub_json,
+                                       verify=False,
+                                       timeout=1800)) as r:
+                if r.status_code == 204:
+                    app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                elif r.status_code == 503:
+                    app_logger.info("{} - Try to remove the proxys for the dead host".format(uuidcode))
+                    remove_proxy_route(app_logger,
+                                       uuidcode,
+                                       app_urls.get('hub', {}).get('url_proxy_route', '<no_url_found>'),
+                                       request_headers.get('jhubtoken'),
+                                       request_headers.get('username'),
+                                       '')
+                    # try again
+                    with closing(requests.post(url,
+                                               headers = hub_header,
+                                               json = hub_json,
+                                               verify = False,
+                                               timeout = 1800)) as r2:
+                        if r2.status_code == 204:
+                            app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
+                            return
+                        else:
+                            app_logger.error("{} - Useracc update sent wrong status_code: {} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
+                else:
+                    app_logger.error("{} - Usercc update sent wrong status_code: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
         except:
             app.log.exception("UNICORE/X get failed. Bugfix required")
             return '', 500
