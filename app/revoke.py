@@ -6,6 +6,7 @@ Created on May 13, 2019
 
 import app.jobs_threads as jt
 import json
+import ast
 
 from threading import Thread
 from flask import request
@@ -73,7 +74,6 @@ class RevokeToken(Resource):
                                               method_args)
                 immune_tokens.append(request_json['accesstoken'])
                 immune_tokens.append(request_json['refreshtoken'])
-                app_logger.trace("{} - all_tokens_list: {}".format(uuidcode, all_tokens_list))
                 to_revoke_list = []
                 for x in all_tokens_list:
                     app_logger.trace("{} - {}".format(uuidcode, x))
