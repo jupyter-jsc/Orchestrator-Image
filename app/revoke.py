@@ -74,24 +74,7 @@ class RevokeToken(Resource):
                                               method_args)
                 immune_tokens.append(request_json['accesstoken'])
                 immune_tokens.append(request_json['refreshtoken'])
-                to_revoke_list = []
-                for x in all_tokens_list:
-                    app_logger.trace("{} - {}".format(uuidcode, x))
-                    d1 = ast.literal_eval(x.decode('utf-8'))
-                    app_logger.trace("{} - {}".format(uuidcode, d1))
-                    d2 = d1.get('contents', {})
-                    app_logger.trace("{} - {}".format(uuidcode, d2))
-                    s1 = d2.get('userInfo', '{}')
-                    app_logger.trace("{} - {}".format(uuidcode, s1))
-                    d3 = json.loads(s1)
-                    app_logger.trace("{} - {}".format(uuidcode, d3))
-                    tmpuname = d3.get('x500name')
-                    app_logger.trace("{} - {}".format(uuidcode, tmpuname))
-                    tmptoken = d1.get('value', '')
-                    app_logger.trace("{} - {}".format(uuidcode, tmptoken))
-                    if tmpuname == username and tmptoken not in immune_tokens:
-                        to_revoke_list.append(d1)
-                #to_revoke_list = [x for x in all_tokens_list if json.loads(x.get('contents', {}).get('userInfo', "{}")).get('x500name') == username and x.get('value', '') not in immune_tokens]
+                to_revoke_list = [x for x in all_tokens_list if json.loads(x.get('contents', {}).get('userInfo', "{}")).get('x500name') == username and x.get('value', '') not in immune_tokens]
                 headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
                 method_args = {"url": revoke_url,
                                "headers": headers,

@@ -123,7 +123,6 @@ def communicate(app_logger, uuidcode, method, method_args, success_code=200):
                     raise Exception("{} - Unity communication failed".format(uuidcode))
                 else:
                     app_logger.trace("{} - Unity call successful".format(uuidcode))
-                    ret = [{k: str(v).encode("utf-8") for k,v in x.items()} for x in r.json()]
-                    return ret
+                    return r.json()
         except:
             app_logger.exception("{} - Unity communication failed".format(uuidcode))

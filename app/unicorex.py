@@ -13,6 +13,7 @@ from contextlib import closing
 from threading import Thread
 
 from app import utils_common, utils_file_loads
+from app.utils_hub_update import remove_proxy_route
 
 class UNICOREXHandler(Resource):
     def get(self):
