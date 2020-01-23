@@ -6,7 +6,6 @@ Created on May 13, 2019
 
 import app.jobs_threads as jt
 import json
-import ast
 
 from threading import Thread
 from flask import request
