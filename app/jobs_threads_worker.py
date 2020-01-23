@@ -44,6 +44,7 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
         worker_header['project'] = server_info.get('project')
         worker_header['jhubtoken'] = server_info.get('jhubtoken')
         worker_header['spawning'] = server_info.get('spawning')
+        worker_header['pollspawner'] = request_headers.get('pollspawner', 'false')
     
         method = "GET"
         method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
