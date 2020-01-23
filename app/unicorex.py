@@ -10,8 +10,10 @@ from flask import request
 from flask_restful import Resource
 from flask import current_app as app
 from contextlib import closing
+from threading import Thread
 
 from app import utils_common, utils_file_loads
+from app.utils_hub_update import remove_proxy_route
 
 class UNICOREXHandler(Resource):
     def get(self):
@@ -31,6 +33,20 @@ class UNICOREXHandler(Resource):
                 if 'Token' in key: # refresh, jhub, access
                     key = key.replace('-', '_')
                 request_headers[key.lower()] = value
+            t = Thread(target=self.get_thread,
+                       args=(app.log,
+                             uuidcode,
+                             request_headers,
+                             app.urls,
+                             app.database))
+            t.start()
+        except:
+            app.log.exception("UNICORE/X get failed. Bugfix required")
+            return '', 500
+        return '', 204
+
+    def get_thread(self, app_logger, uuidcode, request_headers, app_urls, app_database):
+        try:
             machines = request_headers.get('machines', '').split(' ')
             h = { "Accept": "application/json",
                   "User-Agent": request_headers.get('User-Agent'),
@@ -47,13 +63,13 @@ class UNICOREXHandler(Resource):
                                               timeout=1800)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
-                            app.log.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
+                            app_logger.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
                         else:
-                            app.log.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
+                            app_logger.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
                 except requests.exceptions.ConnectTimeout:
-                    app.log.exception("{} - Timeout (1800) reached".format(uuidcode))
+                    app_logger.exception("{} - Timeout (1800) reached".format(uuidcode))
                 except:
-                    app.log.exception("{} - Could not get user information from {}".format(uuidcode, machine))
+                    app_logger.exception("{} - Could not get user information from {}".format(uuidcode, machine))
             ret = {}
             resources = utils_file_loads.get_resources()
             for system, xlogin in xlogins.items():
@@ -73,8 +89,43 @@ class UNICOREXHandler(Resource):
                         for partition in resources.get(machine, {}).keys():
                             if partition not in ret[system][account][group].keys():
                                 ret[system][account][group][partition] = {}
+            # send update to jhub
+            url = app_urls.get('hub', {}).get('url_useraccs', '<No_url_found>')
+            url = url.replace('<user>', request_headers.get('username'))
+            hub_header = {'uuidcode': uuidcode,
+                          'Intern-Authorization': utils_file_loads.get_jhubtoken()}
+            hub_json = { 'useraccs': ret }
+            app_logger.trace("{} - Send useraccs to jupyterhub: {} {} {}".format(uuidcode, url, hub_header, hub_json))
+            with closing(requests.post(url,
+                                       headers=hub_header,
+                                       json=hub_json,
+                                       verify=False,
+                                       timeout=1800)) as r:
+                if r.status_code == 204:
+                    app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                elif r.status_code == 503:
+                    app_logger.info("{} - Try to remove the proxys for the dead host".format(uuidcode))
+                    remove_proxy_route(app_logger,
+                                       uuidcode,
+                                       app_urls.get('hub', {}).get('url_proxy_route', '<no_url_found>'),
+                                       request_headers.get('jhubtoken'),
+                                       request_headers.get('username'),
+                                       '')
+                    # try again
+                    with closing(requests.post(url,
+                                               headers = hub_header,
+                                               json = hub_json,
+                                               verify = False,
+                                               timeout = 1800)) as r2:
+                        if r2.status_code == 204:
+                            app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
+                            return
+                        else:
+                            app_logger.error("{} - Useracc update sent wrong status_code: {} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
+                else:
+                    app_logger.error("{} - Usercc update sent wrong status_code: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
         except:
-            app.log.exception("UNICORE/X get failed. Bugfix required")
+            app_logger.exception("UNICORE/X get failed. Bugfix required")
             return '', 500
         return ret, 200
 
