@@ -73,7 +73,8 @@ class RevokeToken(Resource):
                                               method_args)
                 immune_tokens.append(request_json['accesstoken'])
                 immune_tokens.append(request_json['refreshtoken'])
-                to_revoke_list = [x for x in all_tokens_list if json.loads(x.get('contents', {}).get('userInfo', '{}')).get('x500name') == username and x.get('value', '') not in immune_tokens]
+                dict_only_list = [x for x in all_tokens_list if type(x.get('contents', {})) == dict]
+                to_revoke_list = [x for x in dict_only_list if json.loads(x.get('contents', {}).get('userInfo', '{}')).get('x500name') == username and x.get('value', '') not in immune_tokens]
                 headers = { 'Content-Type': 'application/x-www-form-urlencoded' }
                 method_args = {"url": revoke_url,
                                "headers": headers,
@@ -116,7 +117,7 @@ class RevokeToken(Resource):
                                 "POST",
                                 method_args)
         except:
-            app_logger.error("Revoke.post_thread failed. Bugfix required")
+            app_logger.exception("Revoke.post_thread failed. Bugfix required")
 
     def post(self):
         try:
@@ -146,5 +147,5 @@ class RevokeToken(Resource):
             t.start()
             return '', 202
         except:
-            app.log.error("Revoke.post failed. Bugfix required")
+            app.log.exception("Revoke.post failed. Bugfix required")
             return '', 500
