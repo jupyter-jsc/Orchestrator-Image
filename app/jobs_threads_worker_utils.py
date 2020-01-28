@@ -13,7 +13,7 @@ from app.utils_file_loads import get_j4j_worker_token
 from app.utils_unity import renew_token
 
 def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route, app_hub_token_url, username, servername, app_database):
-    app_logger.trace("{} - Create J4J_Worker_Get_Header".format(uuidcode))
+    app_logger.trace("uuidcode={} - Create J4J_Worker_Get_Header".format(uuidcode))
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
                                       request_headers.get("tokenurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"),
@@ -40,7 +40,7 @@ def create_get_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_r
 
 
 def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route, app_hub_token_url, username, servername, app_database):
-    app_logger.trace("{} - Create J4J_Worker_Header".format(uuidcode))
+    app_logger.trace("uuidcode={} - Create J4J_Worker_Header".format(uuidcode))
     accesstoken, expire = renew_token(app_logger,
                                       uuidcode,
                                       request_headers.get("tokenurl", "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"),
@@ -70,7 +70,7 @@ def create_header(app_logger, uuidcode, request_headers, app_hub_url_proxy_route
     return j4j_worker_header
 
 def create_json(app_logger, uuidcode, request_json):
-    app_logger.trace("{} - Create J4J_Worker_Json".format(uuidcode))
+    app_logger.trace("uuidcode={} - Create J4J_Worker_Json".format(uuidcode))
     j4j_worker_json = {
         "Environment": request_json.get("Environment", {}).copy(),
         "partition": request_json.get("partition"),
@@ -83,8 +83,8 @@ def create_json(app_logger, uuidcode, request_json):
     return j4j_worker_json
 
 def communicate(app_logger, uuidcode, method, method_args):
-    app_logger.debug("{} - J4J_Worker communication. {} {}".format(uuidcode, method_args.get('url', '<no url>'), method))
-    app_logger.trace("{} - J4J_Worker communication. Method_args: {}".format(uuidcode, method_args))
+    app_logger.debug("uuidcode={} - J4J_Worker communication. {} {}".format(uuidcode, method_args.get('url', '<no url>'), method))
+    app_logger.trace("uuidcode={} - J4J_Worker communication. Method_args: {}".format(uuidcode, method_args))
     if method == "DELETE":
         try:
             with closing(requests.delete(method_args['url'],
@@ -92,10 +92,10 @@ def communicate(app_logger, uuidcode, method, method_args):
                                          json = method_args.get('json', {}),
                                          verify = method_args.get('certificate', False),
                                          timeout=1800)) as r:
-                app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                app_logger.trace("uuidcode={} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
                 return r.text, r.status_code, r.headers
         except requests.exceptions.ConnectTimeout:
-            app_logger.exception("{} - Timeout (1800) reached".format(uuidcode))
+            app_logger.exception("uuidcode={} - Timeout (1800) reached".format(uuidcode))
             raise Exception("{} - Timeout".format(uuidcode))
     elif method == "POST":
         try:
@@ -104,11 +104,11 @@ def communicate(app_logger, uuidcode, method, method_args):
                                        json = method_args.get('json', {}),
                                        verify = method_args.get('certificate', False),
                                        timeout=21600)) as r:
-                app_logger.trace("{} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                app_logger.trace("uuidcode={} - J4J_Worker communication response: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
                 return r.text, r.status_code, r.headers
         except requests.exceptions.ConnectTimeout:
-            app_logger.exception("{} - Timeout (21600) reached".format(uuidcode))
-            raise Exception("{} - Timeout".format(uuidcode))
+            app_logger.exception("uuidcode={} - Timeout (21600) reached".format(uuidcode))
+            raise Exception("uuidcode={} - Timeout".format(uuidcode))
     elif method == "GET":
         if method_args.get('fire_and_forget', False):
             try:
@@ -120,5 +120,5 @@ def communicate(app_logger, uuidcode, method, method_args):
             except requests.exceptions.ReadTimeout:
                 pass
             except requests.exceptions.ConnectTimeout:
-                app_logger.debug("{} - DEBUG: ConnectTimeout: {}".format(uuidcode, traceback.format_exc()))
+                app_logger.debug("uuidcode={} - DEBUG: ConnectTimeout: {}".format(uuidcode, traceback.format_exc()))
                 pass
