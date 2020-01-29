@@ -20,11 +20,11 @@ from app.utils_db import get_all_servernames
 class RevokeToken(Resource):
     def post_thread(self, app_logger, uuidcode, request_headers, request_json, app_urls, app_database):
         try:
-            app_logger.trace("{} - Revoke Post_Thread start".format(uuidcode))
+            app_logger.trace("uuidcode={} - Revoke Post_Thread start".format(uuidcode))
             if request_headers.get('stopall', 'false').lower() == 'true':
                 # Try to stop all servers of the user. (For example if he logs out)
                 if not request_headers.get('username'):
-                    app_logger.error("{} - Could not stop all server of user. Key username not in header".format(uuidcode))
+                    app_logger.error("uuidcode={} - Could not stop all server of user. Key username not in header".format(uuidcode))
                 else:
                     servernames = get_all_servernames(app_logger,
                                                       uuidcode,
@@ -41,15 +41,15 @@ class RevokeToken(Resource):
                                     }
                     for server in servernames:
                         delete_header['servername'] = server
-                        app_logger.debug("{} - Delete server {}".format(uuidcode, server))
+                        app_logger.debug("uuidcode={} - Delete server userserver={}".format(uuidcode, server))
                         del_resp = jt.delete(app_logger,
                                              uuidcode,
                                              delete_header,
                                              app_urls,
                                              app_database)
-                        app_logger.trace("{} - Delete server response {}".format(uuidcode, del_resp))
+                        app_logger.trace("uuidcode={} - Delete server response {}".format(uuidcode, del_resp))
     
-            app_logger.trace("{} - Call utils_file_loads.get_unity()".format(uuidcode))
+            app_logger.trace("uuidcode={} - Call utils_file_loads.get_unity()".format(uuidcode))
             unity_file = get_unity()
             token_url = request_headers.get('tokenurl', '')
             revoke_url = unity_file[token_url]['links']['revoke']
@@ -88,11 +88,11 @@ class RevokeToken(Resource):
                     elif token_type == 'oauth2Refresh':
                         token_type = 'refresh_token'
                     else:
-                        app_logger.trace("{} - Token_Dict: {}".format(uuidcode, token_dict))
-                        app_logger.error("{} - Could not revoke token".format(uuidcode))
+                        app_logger.trace("uuidcode={} - Token_Dict: {}".format(uuidcode, token_dict))
+                        app_logger.error("uuidcode={} - Could not revoke token".format(uuidcode))
                         continue
                     token = token_dict.get('value', '')
-                    app_logger.trace("{} - Revoke {} {}".format(uuidcode, token_type, token))
+                    app_logger.trace("uuidcode={} - Revoke {} {}".format(uuidcode, token_type, token))
                     method_args['data']['token_type_hint'] = token_type
                     method_args['data']['token'] = token
                     communicate(app_logger,
@@ -108,7 +108,7 @@ class RevokeToken(Resource):
                                "data": {"client_id": client_id,
                                         "logout": 'true'},
                                "certificate": cert}
-                app_logger.debug("{} - Unity communication to revoke token.".format(uuidcode))
+                app_logger.debug("uuidcode={} - Unity communication to revoke token.".format(uuidcode))
                 for key, value in tokens.items():
                     method_args['data']['token_type_hint'] = key
                     method_args['data']['token'] = value
@@ -123,9 +123,9 @@ class RevokeToken(Resource):
         try:
             # Track actions through different webservices.
             uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-            app.log.info("{} - Revoke Token".format(uuidcode))
-            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
-            app.log.trace("{} - Json: {}".format(uuidcode, request.json))
+            app.log.info("uuidcode={} - Revoke Token".format(uuidcode))
+            app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.trace("uuidcode={} - Json: {}".format(uuidcode, request.json))
             validate_auth(app.log,
                           uuidcode,
                           request.headers.get('intern-authorization', None))

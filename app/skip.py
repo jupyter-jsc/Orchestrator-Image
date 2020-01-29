@@ -20,9 +20,9 @@ class SkipHandler(Resource):
         try:
             # Track actions through different webservices.
             uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-            app.log.info("{} - Set skip".format(uuidcode))
-            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
-            app.log.trace("{} - Json: {}".format(uuidcode, json.dumps(request.json)))
+            app.log.info("uuidcode={} - Set skip".format(uuidcode))
+            app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.trace("uuidcode={} - Json: {}".format(uuidcode, json.dumps(request.json)))
     
             # Check for the J4J intern token
             utils_common.validate_auth(app.log,

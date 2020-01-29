@@ -12,7 +12,7 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
     path2 = '{}/{}'.format(app_urls.get('docker', {}).get('check_results_folder'), uuidcode2)
     # We create a file in a mounted directory.
     # An inotifywait process is looking for new files in this directory (running on the VM for User-Containers)
-    app_logger.debug("{} - Create File {}".format(uuidcode, path1))
+    app_logger.debug("uuidcode={} - Create File {}".format(uuidcode, path1))
     s_email, s_servername = servername.split(':')
     s_output = "{};{}".format(s_email.replace('@', '_at_'), s_servername)
     with open(path1, 'w') as f:
@@ -21,14 +21,14 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
     sleeping = [0.5, 0.5, 1, 2, 2, 4, 5, 10, 20, 30]
     for i in range(0, 10):
         sleep(sleeping[i])
-        app_logger.debug("{} - Looking for file {}".format(uuidcode, path2))
+        app_logger.debug("uuidcode={} - Looking for file {}".format(uuidcode, path2))
         if os.path.isfile(path2):
             # The file exists (so the check from the script outside of this container is finished)
             try:
                 with open(path2, 'r') as f:
                     result = f.read()
                 os.remove(path2) # delete the file, we don't need it anymore
-                app_logger.debug("{} - Input of file {}: {}".format(uuidcode, path2, result))
+                app_logger.debug("uuidcode={} - Input of file {}: {}".format(uuidcode, path2, result))
                 if result.lower().strip() == 'true':
                     # Inform JupyterHub that the JupyterLab is still running
                     utils_hub_update.status(app_logger,
@@ -57,7 +57,7 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                     return
             except:
                 # The read failed, maybe the script is still writing into the file at this exact moment? Try again in the next run
-                app_logger.exception("{} - Tried to read input of file {}. Failed".format(uuidcode, path2))
+                app_logger.exception("uuidcode={} - Tried to read input of file {}. Failed".format(uuidcode, path2))
                 continue
     # We tried for so long, we got no answer, so we see it as failed
     utils_hub_update.status(app_logger,
@@ -97,7 +97,7 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
                                                             environment.get('JUPYTERHUB_API_URL', 'http://j4j_proxy:8000/hub/api'),
                                                             hpcaccounts)
 
-    app_logger.debug("{} - Add server to database: {}".format(uuidcode, servername_at))
+    app_logger.debug("uuidcode={} - Add server to database: {}".format(uuidcode, servername_at))
     utils_db.create_entry_docker(app_logger,
                                  uuidcode,
                                  app_database,
@@ -106,7 +106,7 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
                                  port,
                                  dockerimage)
 
-    app_logger.trace("{} - Write: {} to file {}/{}".format(uuidcode, s_output, app_urls.get('docker', {}).get('create_folder'), uuidcode))
+    app_logger.trace("uuidcode={} - Write: {} to file {}/{}".format(uuidcode, s_output, app_urls.get('docker', {}).get('create_folder'), uuidcode))
     with open('{}/{}'.format(app_urls.get('docker', {}).get('create_folder'), uuidcode), 'w') as f:
         f.write(s_output)
 
@@ -117,7 +117,7 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
         path2 = '{}/{}'.format(app_urls.get('docker', {}).get('check_results_folder'), uuidcode2)
         # We create a file in a mounted directory.
         # An inotifywait process is looking for new files in this directory (running on the VM for User-Containers)
-        app_logger.debug("{} - Create File {}".format(uuidcode, path1))
+        app_logger.debug("uuidcode={} - Create File {}".format(uuidcode, path1))
         s_email, s_servername = servername.split(':')
         s_output = "{};{}".format(s_email.replace('@', '_at_'), s_servername)
         with open(path1, 'w') as f:
@@ -126,14 +126,14 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
         sleeping = [0.5, 0.5, 1, 2, 2, 4, 5, 10, 20, 30]
         for j in range(0, 10):
             sleep(sleeping[j])
-            app_logger.debug("{} - Looking for file {}".format(uuidcode, path2))
+            app_logger.debug("uuidcode={} - Looking for file {}".format(uuidcode, path2))
             if os.path.isfile(path2):
                 # The file exists (so the check from the script outside of this container is finished)
                 try:
                     with open(path2, 'r') as f:
                         result = f.read()
                     os.remove(path2) # delete the file, we don't need it anymore
-                    app_logger.debug("{} - Input of file {}: {}".format(uuidcode, path2, result))
+                    app_logger.debug("uuidcode={} - Input of file {}: {}".format(uuidcode, path2, result))
                     if result.lower().strip() == 'true':
                         utils_hub_update.status(app_logger,
                                                 uuidcode,
@@ -156,7 +156,7 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
                         break
                 except:
                     # The read failed, maybe the script is still writing into the file at this exact moment? Try again in the next run
-                    app_logger.exception("{} - Tried to read input of file {}. Failed".format(uuidcode, path2))
+                    app_logger.exception("uuidcode={} - Tried to read input of file {}. Failed".format(uuidcode, path2))
                     continue
         sleep(3)
     # We only reach this point, if the Container is not started properly (or our check failed). 
@@ -170,7 +170,7 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
     return
 
 def delete_docker(app_logger, uuidcode, servername, docker_delete_folder):
-    app_logger.trace("{} - Try to delete docker container named: {}".format(uuidcode, servername))
+    app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))
     servername_at = servername.replace('@', '_at_')
     email = servername_at.split(':')[0]
     servername_short = servername_at.split(':')[1]
@@ -182,9 +182,9 @@ def delete_docker(app_logger, uuidcode, servername, docker_delete_folder):
 def get_hpc_accounts(app_logger, uuidcode, hpcaccounts_list):
     ret = ""
     if hpcaccounts_list == None:
-        app_logger.debug("{} - User has no HPC accounts".format(uuidcode))
+        app_logger.debug("uuidcode={} - User has no HPC accounts".format(uuidcode))
         return ""
-    app_logger.debug("{} - Try to rearrange hpc accounts: {}".format(uuidcode, hpcaccounts_list))
+    app_logger.debug("uuidcode={} - Try to rearrange hpc accounts: {}".format(uuidcode, hpcaccounts_list))
     user_accs = {}
     try:
         for line in hpcaccounts_list:
@@ -194,13 +194,13 @@ def get_hpc_accounts(app_logger, uuidcode, hpcaccounts_list):
                 user_accs[system.lower()] = []
             if account.lower() not in user_accs[system.lower()]:
                 user_accs[system.lower()].append(account.lower())
-        app_logger.debug("{} - user_accs: {}".format(uuidcode, user_accs))
+        app_logger.debug("uuidcode={} - user_accs: {}".format(uuidcode, user_accs))
         for system, names in user_accs.items():
             if ret != "":
                 ret += "_"
             ret += "{}:{}".format(system.upper(), ','.join(names))
-        app_logger.debug("{} - Return: {}".format(uuidcode, ret))
+        app_logger.debug("uuidcode={} - Return: {}".format(uuidcode, ret))
         return ret
     except:
-        app_logger.exception("{} - Could not rearrange hpcaccounts".format(uuidcode))
+        app_logger.exception("uuidcode={} - Could not rearrange hpcaccounts".format(uuidcode))
         return ""

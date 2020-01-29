@@ -5,7 +5,7 @@ from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_
 
 def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, request_headers, escapedusername, servername, server_info):
     try:
-        app_logger.trace("{} - Call Create_get_header with: {} {} {} {} {}".format(uuidcode, request_headers, app_urls.get('hub', {}).get('url_proxy_route'), app_urls.get('hub', {}).get('url_token'), escapedusername, servername))
+        app_logger.trace("uuidcode={} - Call Create_get_header with: {} {} {} {} {}".format(uuidcode, request_headers, app_urls.get('hub', {}).get('url_proxy_route'), app_urls.get('hub', {}).get('url_token'), escapedusername, servername))
         worker_header = jobs_threads_worker_utils.create_get_header(app_logger,
                                                                     uuidcode,
                                                                     request_headers,
@@ -15,7 +15,7 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                                                                     servername,
                                                                     app_database)
     except:
-        app_logger.exception("{} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
+        app_logger.exception("uuidcode={} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
         utils_db.set_skip(app_logger,
                           uuidcode,
                           request_headers.get('servername'),
@@ -51,7 +51,7 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                        "headers":worker_header,
                        "certificate": False,
                        "fire_and_forget": True}
-        app_logger.info("{} - Get J4J_Worker. Kernel_url: {}".format(uuidcode, worker_header['kernelurl']))
+        app_logger.info("uuidcode={} - Get J4J_Worker. Kernel_url: {}".format(uuidcode, worker_header['kernelurl']))
         jobs_threads_worker_utils.communicate(app_logger,
                                               uuidcode,
                                               method,
@@ -63,7 +63,7 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                           request_headers.get('servername'),
                           app_database,
                           'False')
-        app_logger.exception("{} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
 
 
 def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_urls, app_database):
@@ -74,7 +74,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                                      app_urls,
                                                      app_database)
     # All duplicated servers are deleted from the database and stopped
-    app_logger.trace('{} - J4J_Worker_response_header: {}'.format(uuidcode, j4j_worker_response_header))
+    app_logger.trace('uuidcode={} - J4J_Worker_response_header: {}'.format(uuidcode, j4j_worker_response_header))
     try:
         j4j_worker_header = jobs_threads_worker_utils.create_header(app_logger,
                                                                     uuidcode,
@@ -85,7 +85,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                                                     request_headers.get('servername'),
                                                                     app_database)
     except:
-        app_logger.exception("{} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
+        app_logger.exception("uuidcode={} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
@@ -111,12 +111,12 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
 
     if 'session' in j4j_worker_response_header:
         j4j_worker_header['X-UNICORE-SecuritySession'] = j4j_worker_response_header['X-UNICORE-SecuritySession']
-    app_logger.trace("{} - J4J_Worker_Header: {}".format(uuidcode, j4j_worker_header))
+    app_logger.trace("uuidcode={} - J4J_Worker_Header: {}".format(uuidcode, j4j_worker_header))
 
     j4j_worker_json = jobs_threads_worker_utils.create_json(app_logger,
                                                             uuidcode,
                                                             request_json)
-    app_logger.trace("{} - J4J_Worker_Json: {}".format(uuidcode, j4j_worker_json))
+    app_logger.trace("uuidcode={} - J4J_Worker_Json: {}".format(uuidcode, j4j_worker_json))
     # Call worker post
     try:
         method = "POST"
@@ -124,22 +124,22 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                        "headers": j4j_worker_header,
                        "json": j4j_worker_json,
                        "certificate": False}
-        app_logger.info("{} - Post J4J_Worker".format(uuidcode))
+        app_logger.info("uuidcode={} - Post J4J_Worker".format(uuidcode))
         text, status_code, headers = jobs_threads_worker_utils.communicate(app_logger,
                                                                            uuidcode,
                                                                            method,
                                                                            method_args)
         if status_code != 201:
-            app_logger.warning("{} - J4J_Worker Post failed. J4J_Worker Response: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
+            app_logger.warning("uuidcode={} - J4J_Worker Post failed. J4J_Worker Response: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
             raise Exception("{} - J4J_Worker Post failed. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
         else:
-            app_logger.debug("{} - J4J_Worker communication successful: {} {}".format(uuidcode, text, status_code))
-            app_logger.trace("{} - J4J_Worker communication successful: {}".format(uuidcode, headers))
+            app_logger.debug("uuidcode={} - J4J_Worker communication successful: {} {}".format(uuidcode, text, status_code))
+            app_logger.trace("uuidcode={} - J4J_Worker communication successful: {}".format(uuidcode, headers))
             j4j_worker_header['kernelurl'] = headers['kernelurl']
             j4j_worker_header['filedir'] = headers['filedir']
             j4j_worker_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
     except:
-        app_logger.exception("{} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
@@ -151,7 +151,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
         return
 
     # update database
-    app_logger.debug("{} - Add '{}' to database".format(uuidcode, request_json.get('servername')))
+    app_logger.debug("uuidcode={} - Add userserver={} to database".format(uuidcode, request_json.get('servername')))
     utils_db.create_entry(app_logger,
                           uuidcode,
                           request_headers,
@@ -174,21 +174,21 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                 request_headers.get('escapedusername'),
                                 request_headers.get('servername'))
     except:
-        app_logger.warning("{} - Could not update status for JupyterHub".format(uuidcode))
+        app_logger.warning("uuidcode={} - Could not update status for JupyterHub".format(uuidcode))
     try:
         method = "GET"
         method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
                        "headers": j4j_worker_header,
                        "certificate": False,
                        "fire_and_forget": True}
-        app_logger.info("{} - Get J4J_Worker".format(uuidcode))
+        app_logger.info("uuidcode={} - Get J4J_Worker".format(uuidcode))
         jobs_threads_worker_utils.communicate(app_logger,
                                               uuidcode,
                                               method,
                                               method_args)
 
     except:
-        app_logger.exception("{} - J4J_Worker communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - J4J_Worker communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
@@ -213,7 +213,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                    app_urls.get('hub', {}).get('url_proxy_route'),
                    app_urls.get('hub', {}).get('url_token'))
         except:
-            app_logger.exception("{} - Could not delete/destroy Job via J4J_Worker. {}".format(uuidcode, utils_common.remove_secret(request_headers)))
+            app_logger.exception("uuidcode={} - Could not delete/destroy Job via J4J_Worker. {}".format(uuidcode, utils_common.remove_secret(request_headers)))
 
 
 def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, system, kernelurl, filedir, port, account, project):
@@ -237,19 +237,19 @@ def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, s
     method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
                    "headers": delete_header,
                    "certificate": False}
-    app_logger.info("{} - Delete J4J_Worker".format(uuidcode))
+    app_logger.info("uuidcode={} - Delete J4J_Worker".format(uuidcode))
     text, status_code, headers = jobs_threads_worker_utils.communicate(app_logger,
                                                                        uuidcode,
                                                                        method,
                                                                        method_args)
     if status_code == 200:
-        app_logger.debug("{} - J4J_Worker communication successful: {} {}".format(uuidcode, text, status_code))
-        app_logger.trace("{} - J4J_Worker communication successful: {}".format(uuidcode, headers))
+        app_logger.debug("uuidcode={} - J4J_Worker communication successful: {} {}".format(uuidcode, text, status_code))
+        app_logger.trace("uuidcode={} - J4J_Worker communication successful: {}".format(uuidcode, headers))
         delete_header['accesstoken'] = headers['accesstoken']
         delete_header['expire'] = headers['expire']
         delete_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
     else:
-        app_logger.warning("{} - J4J_Worker communication not successful: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
+        app_logger.warning("uuidcode={} - J4J_Worker communication not successful: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
         raise Exception("{} - J4J_Worker communication not successful. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
     return headers, delete_header
 
@@ -275,6 +275,6 @@ def random_port(app_logger, uuidcode, database, database_tunnel):
             break
         count += 1
         if count > 20:
-            app_logger.error("{} - Could not find unused port in 20 trys. Return port 0. Last tried random port: {}".format(uuidcode, port))
+            app_logger.error("uuidcode={} - Could not find unused port in 20 trys. Return port 0. Last tried random port: {}".format(uuidcode, port))
             return 0
     return port

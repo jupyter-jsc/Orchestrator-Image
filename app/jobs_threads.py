@@ -10,14 +10,14 @@ from app import utils_hub_update
 
 def get(app_logger, uuidcode, request_headers, app_urls, app_database):
     try:
-        app_logger.trace("{} - Begin of get thread.".format(uuidcode))
+        app_logger.trace("uuidcode={} - Begin of get thread.".format(uuidcode))
         # Check if the server is still spawning.
         spawning = utils_db.get_spawning(app_logger,
                                          uuidcode,
                                          request_headers.get('servername', '<no_servername>'),
                                          app_database)
         if len(spawning) == 0 or spawning[0]:
-            app_logger.debug("{} - Do nothing. {} is still spawning so we need no update".format(uuidcode, request_headers.get('servername', '<no_servername>')))
+            app_logger.debug("uuidcode={} - Do nothing. userserver={} is still spawning so we need no update".format(uuidcode, request_headers.get('servername', '<no_servername>')))
             return
 
         # Check if another get call is already running for this servername
@@ -26,7 +26,7 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                                  request_headers.get('servername', '<no_servername>'),
                                  app_database)
         if len(skip) == 0 or skip[0]:
-            app_logger.debug("{} - Do nothing. {} is already checked. Skip it.".format(uuidcode, request_headers.get('servername', '<no_servername>')))
+            app_logger.debug("uuidcode={} - Do nothing. userserver={} is already checked. Skip it.".format(uuidcode, request_headers.get('servername', '<no_servername>')))
             return
 
         try:
@@ -41,7 +41,7 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                                         request_headers.get('servername'))
 
         except:
-            app_logger.error("{} - Could not get token from JupyterHub".format(uuidcode))
+            app_logger.error("uuidcode={} - Could not get token from JupyterHub".format(uuidcode))
             return
 
         # Get stored information for all server with this name (should be one) in database
@@ -49,17 +49,17 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                                          uuidcode,
                                          request_headers.get('servername'),
                                          app_database)
-        app_logger.trace("{} - Result of get_entry_infos: {}".format(uuidcode, infos))
+        app_logger.trace("uuidcode={} - Result of get_entry_infos: {}".format(uuidcode, infos))
 
         if len(infos) == 0:
             # We don't know this server (yet). This usually happens when we're starting it right 
             # now and the cron job wants to check the status. So just do nothing
-            app_logger.debug("{} - Len(infos) == 0, but since this is the cronjob, we just do nothing".format(uuidcode))
+            app_logger.debug("uuidcode={} - Len(infos) == 0, but since this is the cronjob, we just do nothing".format(uuidcode))
             return
 
         if len(infos) > 1:
             # should not happen. Let's inform an admin via mail
-            app_logger.error("{} - Found multiple Server with the servername {}: {}".format(uuidcode, request_headers.get('servername'), infos))
+            app_logger.error("uuidcode={} - Found multiple Server with the servername {}: {}".format(uuidcode, request_headers.get('servername'), infos))
             return
 
         info = infos[0]
@@ -110,7 +110,7 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
 
 def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_database):
     try:
-        app_logger.trace("{} - Begin of post thread.".format(uuidcode))
+        app_logger.trace("uuidcode={} - Begin of post thread.".format(uuidcode))
         if request_json.get('system').lower() == 'docker':
             jobs_threads_docker.start_docker(app_logger,
                                              uuidcode,
@@ -134,9 +134,9 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
     return
 
 def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
-    app_logger.trace("{} - Begin of delete thread.".format(uuidcode))
+    app_logger.trace("uuidcode={} - Begin of delete thread.".format(uuidcode))
     if not request_headers.get('servername'):
-        app_logger.warning("{} - No servername. Headers: {}".format(uuidcode, utils_common.remove_secret(request_headers)))
+        app_logger.warning("uuidcode={} - No servername. Headers: {}".format(uuidcode, utils_common.remove_secret(request_headers)))
         return
 
     servers = utils_db.get_entry_servername(app_logger,
@@ -179,8 +179,8 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
                                                                         project)
         except:
             if docker:
-                app_logger.exception("{} - Could not delete docker container".format(uuidcode))
+                app_logger.exception("uuidcode={} - Could not delete docker container".format(uuidcode))
             else:
-                app_logger.exception("{} - J4J_Worker communication failed. {}".format(uuidcode, server))
+                app_logger.exception("uuidcode={} - J4J_Worker communication failed. {}".format(uuidcode, server))
 
     return headers

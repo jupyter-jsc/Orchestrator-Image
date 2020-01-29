@@ -17,8 +17,8 @@ class JobHandler(Resource):
         try:
             # Track actions through different webservices.
             uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-            app.log.info("{} - Get Server Status".format(uuidcode))
-            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.info("uuidcode={} - Get Server Status".format(uuidcode))
+            app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
     
             # Check for the J4J intern token
             utils_common.validate_auth(app.log,
@@ -34,7 +34,7 @@ class JobHandler(Resource):
                 request_headers['tokenurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"
             if not request_headers.get('authorizeurl', None):
                 request_headers['authorizeurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"
-            app.log.debug("{} - Start Thread to communicate with worker".format(uuidcode))
+            app.log.debug("uuidcode={} - Start Thread to communicate with worker".format(uuidcode))
             t = Thread(target=jobs_threads.get,
                        args=(app.log,
                              uuidcode,
@@ -50,16 +50,16 @@ class JobHandler(Resource):
         try:
             # Track actions through different webservices.
             uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-            app.log.info("{} - Spawn Server".format(uuidcode))
-            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
-            app.log.trace("{} - Json: {}".format(uuidcode, request.json))
+            app.log.info("uuidcode={} - Spawn Server".format(uuidcode))
+            app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.trace("uuidcode={} - Json: {}".format(uuidcode, request.json))
     
             # Check for the J4J intern token
             utils_common.validate_auth(app.log,
                                        uuidcode,
                                        request.headers.get('intern-authorization', None))
     
-            app.log.debug("{} - Start Thread to communicate with worker".format(uuidcode))
+            app.log.debug("uuidcode={} - Start Thread to communicate with worker".format(uuidcode))
             request_headers = {}
             for key, value in request.headers.items():
                 if 'Token' in key: # refresh, jhub, access
@@ -83,8 +83,8 @@ class JobHandler(Resource):
                 
                 if request_json['port'] == 0:
                     return  '{}'.format(request_json['port']), 539
-            app.log.trace("{} - New Headers: {}".format(uuidcode, request_headers))
-            app.log.trace("{} - New Json: {}".format(uuidcode, request_json))
+            app.log.trace("uuidcode={} - New Headers: {}".format(uuidcode, request_headers))
+            app.log.trace("uuidcode={} - New Json: {}".format(uuidcode, request_json))
             t = Thread(target=jobs_threads.post,
                        args=(app.log,
                              uuidcode,
@@ -101,8 +101,8 @@ class JobHandler(Resource):
         try:
             # Track actions through different webservices.
             uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-            app.log.info("{} - Delete Server".format(uuidcode))
-            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.info("uuidcode={} - Delete Server".format(uuidcode))
+            app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
     
             # Check for the J4J intern token
             utils_common.validate_auth(app.log,
@@ -117,7 +117,7 @@ class JobHandler(Resource):
                 request_headers['tokenurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"
             if not request_headers.get('authorizeurl', None):
                 request_headers['authorizeurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"
-            app.log.debug("{} - Start Delete Thread".format(uuidcode))
+            app.log.debug("uuidcode={} - Start Delete Thread".format(uuidcode))
             t = Thread(target=jobs_threads.delete,
                        args=(app.log,
                              uuidcode,

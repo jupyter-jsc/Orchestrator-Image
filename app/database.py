@@ -16,8 +16,8 @@ class DatabaseHandler(Resource):
     def delete(self):
         # Track actions through different webservices.
         uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-        app.log.info("{} - Delete Database entry".format(uuidcode))
-        app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
+        app.log.info("uuidcode={} - Delete Database entry".format(uuidcode))
+        app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
 
         # Check for the J4J intern token
         utils_common.validate_auth(app.log,

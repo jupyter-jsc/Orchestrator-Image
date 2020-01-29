@@ -20,8 +20,8 @@ class UNICOREXHandler(Resource):
         try:
             # Track actions through different webservices.
             uuidcode = request.headers.get('uuidcode', '<no uuidcode>')
-            app.log.info("{} - Get UNICOREX User".format(uuidcode))
-            app.log.trace("{} - Headers: {}".format(uuidcode, request.headers.to_list()))
+            app.log.info("uuidcode={} - Get UNICOREX User".format(uuidcode))
+            app.log.trace("uuidcode={} - Headers: {}".format(uuidcode, request.headers.to_list()))
 
             # Check for the J4J intern token
             utils_common.validate_auth(app.log,
@@ -63,13 +63,13 @@ class UNICOREXHandler(Resource):
                                               timeout=1800)) as r:
                         if r.status_code == 200:
                             xlogins[machine] = r.json().get('client', {}).get('xlogin', {})
-                            app_logger.trace("{} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
+                            app_logger.trace("uuidcode={} - {} returned {}".format(uuidcode, machine, xlogins[machine]))
                         else:
-                            app_logger.warning("{} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
+                            app_logger.warning("uuidcode={} - Could not get user information from {}. {} {} {}".format(uuidcode, machine, r.status_code, r.text, r.headers))
                 except requests.exceptions.ConnectTimeout:
-                    app_logger.exception("{} - Timeout (1800) reached".format(uuidcode))
+                    app_logger.exception("uuidcode={} - Timeout (1800) reached".format(uuidcode))
                 except:
-                    app_logger.exception("{} - Could not get user information from {}".format(uuidcode, machine))
+                    app_logger.exception("uuidcode={} - Could not get user information from {}".format(uuidcode, machine))
             ret = {}
             resources = utils_file_loads.get_resources()
             for system, xlogin in xlogins.items():
@@ -95,16 +95,16 @@ class UNICOREXHandler(Resource):
             hub_header = {'uuidcode': uuidcode,
                           'Intern-Authorization': utils_file_loads.get_jhubtoken()}
             hub_json = { 'useraccs': ret }
-            app_logger.trace("{} - Send useraccs to jupyterhub: {} {} {}".format(uuidcode, url, hub_header, hub_json))
+            app_logger.trace("uuidcode={} - Send useraccs to jupyterhub: {} {} {}".format(uuidcode, url, hub_header, hub_json))
             with closing(requests.post(url,
                                        headers=hub_header,
                                        json=hub_json,
                                        verify=False,
                                        timeout=1800)) as r:
                 if r.status_code == 204:
-                    app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                    app_logger.trace("uuidcode={} - User accs sent successfully:{} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
                 elif r.status_code == 503:
-                    app_logger.info("{} - Try to remove the proxys for the dead host".format(uuidcode))
+                    app_logger.info("uuidcode={} - Try to remove the proxys for the dead host".format(uuidcode))
                     remove_proxy_route(app_logger,
                                        uuidcode,
                                        app_urls.get('hub', {}).get('url_proxy_route', '<no_url_found>'),
@@ -118,12 +118,12 @@ class UNICOREXHandler(Resource):
                                                verify = False,
                                                timeout = 1800)) as r2:
                         if r2.status_code == 204:
-                            app_logger.trace("{} - User accs sent successfully:{} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
+                            app_logger.trace("uuidcode={} - User accs sent successfully:{} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
                             return
                         else:
-                            app_logger.error("{} - Useracc update sent wrong status_code: {} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
+                            app_logger.error("uuidcode={} - Useracc update sent wrong status_code: {} {} {}".format(uuidcode, r2.text, r2.status_code, r2.headers))
                 else:
-                    app_logger.error("{} - Usercc update sent wrong status_code: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
+                    app_logger.error("uuidcode={} - Usercc update sent wrong status_code: {} {} {}".format(uuidcode, r.text, r.status_code, r.headers))
         except:
             app_logger.exception("UNICORE/X get failed. Bugfix required")
             return '', 500
