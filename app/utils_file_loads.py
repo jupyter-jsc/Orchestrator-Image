@@ -32,11 +32,16 @@ def get_unity():
     return unity
 
 def get_unicore():
-    with open('/etc/j4j/j4j_mount/j4j_common/unicore.json') as f:
+    with open('/etc/j4j/j4j_mount/j4j_common/unicore.json', 'r') as f:
         unicore_file = json.load(f)
     return unicore_file
 
 def get_resources():
-    with open('/etc/j4j/j4j_mount/j4j_common/resources.json') as f:
+    with open('/etc/j4j/j4j_mount/j4j_common/resources.json', 'r') as f:
         resources = json.load(f)
     return resources
+
+def get_cron_info():
+    with open('/etc/j4j/j4j_mount/j4j_common/cronjob.json', 'r') as f:
+        cron = json.load(f)
+    return cron
