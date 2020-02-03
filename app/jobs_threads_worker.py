@@ -1,4 +1,5 @@
 import socket
+import base64
 
 from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
@@ -67,6 +68,48 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
 
 
 def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_urls, app_database):
+    # Check if it's the cron test job
+    try:
+        cron_info = utils_file_loads.get_cron_info()
+        user, servernameshort = request_json.get('servername', ':').split(':')
+        if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('servername', '<undefined>') == servernameshort:
+          if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('account', '<undefined>') == request_headers.get('account'):
+            if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('project', '<undefined>') == request_headers.get('project'):
+              if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('partition', '<undefined>') == request_json.get('partition'):
+                # get refresh token
+                unity_file = utils_file_loads.get_unity()
+                refresh_token = unity_file.get(request_headers.get('tokenurl'), {}).get('immune_tokens', [''])[0]
+                # get access token
+                client_id = unity_file.get(request_headers.get('tokenurl'), {}).get('client_id', '')
+                client_secret = unity_file.get(request_headers.get('tokenurl'), {}).get('client_secret', '')
+                unity_cert = unity_file.get(request_headers.get('tokenurl'), {}).get('certificate', False)
+                scopes = unity_file.get(request_headers.get('authorizeurl'), {}).get('scope')
+                tokeninfo_url = unity_file.get(reuqest_headers.get('tokenurl'), {}).get('links', {}).get('tokeninfo', '')
+                b64_key = base64.b64encode(bytes('{}:{}'.format(client_id, client_secret),'utf8')).decode('utf8')
+                headers = {
+                          'Accept': 'application/json',
+                          'Authorization': 'Basic {}'.format(b64_key)
+                          }
+                data = {
+                       'refresh_token': refresh_token,
+                       'grant_type': 'refresh_token',
+                       'scope': ' '.join(scopes)
+                       }
+                with closing(requests.post(request_headers.get('tokenurl'), headers=headers, data=data, verify=unity_cert)) as r:
+                    if r.status_code != 200:
+                        raise Exception("uuidcode={} Could not receive access_token: {} {}".format(uuidcode, r.status_code, r.text))
+                    access_token = r.json().get('access_token')
+                # get expire
+                with closing(requests.get(tokeninfo_url,
+                                          headers = { 'Authorization': 'Bearer {}'.format(accesstoken) },
+                                          verify = unity_cert,
+                                          timeout = 1800)) as r:
+                    expire = r.json().get('exp')
+                request_headers['accesstoken'] = access_token
+                request_headers['expire'] = '{}'.format(expire)
+                request_headers['refreshtoken'] = refresh_token
+    except:
+        log.exception("uuidcode={}, Could not check if it's a cron job server".format(uuidcode))
     # Delete all server with this name (there should be none, but better safe than sorry)
     j4j_worker_response_header = jobs_threads.delete(app_logger,
                                                      uuidcode,
