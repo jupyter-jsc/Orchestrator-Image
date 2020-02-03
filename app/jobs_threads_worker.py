@@ -109,7 +109,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                 request_headers['expire'] = '{}'.format(expire)
                 request_headers['refreshtoken'] = refresh_token
     except:
-        log.exception("uuidcode={}, Could not check if it's a cron job server".format(uuidcode))
+        app_logger.exception("uuidcode={}, Could not check if it's a cron job server".format(uuidcode))
     # Delete all server with this name (there should be none, but better safe than sorry)
     j4j_worker_response_header = jobs_threads.delete(app_logger,
                                                      uuidcode,
