@@ -53,14 +53,14 @@ class RevokeToken(Resource):
             unity_file = get_unity()
             token_url = request_headers.get('tokenurl', '')
             revoke_url = unity_file[token_url]['links']['revoke']
-            admin_tokens = unity_file[token_url]['links']['admin_tokens']
-            admin_basic_token = unity_file[token_url]['admin_basic_token']
             cert = unity_file[token_url].get('certificate', False)
-            immune_tokens = unity_file[token_url].get('immune_tokens', [])
             client_id = unity_file[token_url]['client_id']
     
             # Revoke all tokens, but these we just sent in the header. Useful when the users logs in. So old tokens will be removed
             if request_headers.get('allbutthese', 'false').lower() == 'true':
+                admin_tokens = unity_file[token_url]['links'].get('admin_tokens', None)
+                admin_basic_token = unity_file[token_url].get('admin_basic_token', None)
+                immune_tokens = unity_file[token_url].get('immune_tokens', [])
                 username = 'UID={}'.format(request_headers.get('username'))
                 headers = { 'Content-Type': 'application/json',
                             'Authorization': 'Basic {}'.format(admin_basic_token) }
