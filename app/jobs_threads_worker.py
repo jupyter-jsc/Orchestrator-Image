@@ -1,5 +1,8 @@
 import socket
 import base64
+import requests
+
+from contextlib import closing
 
 from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
@@ -16,24 +19,12 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                                                                     servername,
                                                                     app_database)
     except:
-        app_logger.exception("uuidcode={} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
+        app_logger.exception("uuidcode={} - Could not create Header. Do nothing and return. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
         utils_db.set_skip(app_logger,
                           uuidcode,
                           request_headers.get('servername'),
                           app_database,
                           'False')
-        if server_info.get('system', None):
-            error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(server_info.get('system'))
-        else:
-            error_msg = "A mandatory backend service had a problem. An administrator is informed"
-        utils_hub_update.cancel(app_logger,
-                                uuidcode,
-                                app_urls.get('hub', {}).get('url_proxy_route'),
-                                app_urls.get('hub', {}).get('url_cancel'),
-                                request_headers.get("jhubtoken"),
-                                error_msg,
-                                escapedusername,
-                                servername)
         return
     try:
         # call worker get (fire and forget)
@@ -84,7 +75,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                 client_secret = unity_file.get(request_headers.get('tokenurl'), {}).get('client_secret', '')
                 unity_cert = unity_file.get(request_headers.get('tokenurl'), {}).get('certificate', False)
                 scopes = unity_file.get(request_headers.get('authorizeurl'), {}).get('scope')
-                tokeninfo_url = unity_file.get(reuqest_headers.get('tokenurl'), {}).get('links', {}).get('tokeninfo', '')
+                tokeninfo_url = unity_file.get(request_headers.get('tokenurl'), {}).get('links', {}).get('tokeninfo', '')
                 b64_key = base64.b64encode(bytes('{}:{}'.format(client_id, client_secret),'utf8')).decode('utf8')
                 headers = {
                           'Accept': 'application/json',
@@ -101,7 +92,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                     access_token = r.json().get('access_token')
                 # get expire
                 with closing(requests.get(tokeninfo_url,
-                                          headers = { 'Authorization': 'Bearer {}'.format(accesstoken) },
+                                          headers = { 'Authorization': 'Bearer {}'.format(access_token) },
                                           verify = unity_cert,
                                           timeout = 1800)) as r:
                     expire = r.json().get('exp')
