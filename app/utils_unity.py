@@ -73,6 +73,8 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                     app_logger.trace("uuidcode={} - Unity Response: {} {} {} {}".format(uuidcode, r.text, r.status_code, r.headers, r.json))
                     expire = r.json().get('exp')
                     break
+            except SpawnException as e:
+                raise SpawnException(str(e))
             except:
                 app_logger.warning("uuidcode={} - Could not update token. This was the {}/10 try. {}".format(uuidcode, i+1, "Raise Exception" if i==9 else "Try again in 30 seconds"))
                 if i==0:
@@ -86,6 +88,8 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                 if i==9:
                     raise Exception("uuidcode={} - Tried 10 times".format(uuidcode))
                 time.sleep(30)
+    except SpawnException as e2:
+        raise SpawnException(str(e2))
     except:
         app_logger.warning("uuidcode={} - Could not update token".format(uuidcode))
         raise Exception("uuidcode={} - Could not update token".format(uuidcode))
