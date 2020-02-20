@@ -63,6 +63,8 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                                 app_logger.exception("uuidcode={} - Could not check for Unity error description: {}".format(uuidcode, r.text))
                             except:
                                 app_logger.exception("uuidcode={} - Could not check for Unity error description".format(uuidcode))
+                        # strange but ... we have to wait for 5 seconds. Otherwise we're too fast for JupyterHub and the user will not see this error message
+                        time.sleep(5)
                         raise SpawnException(error_msg)
                     accesstoken = r.json().get('access_token')
                 app_logger.info("uuidcode={} - Get to {}".format(uuidcode, tokeninfo_url))
