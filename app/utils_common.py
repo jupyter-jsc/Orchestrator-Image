@@ -29,3 +29,6 @@ def remove_secret(json_dict):
         else:
             secret_dict[key] = value
     return secret_dict
+
+class SpawnException(Exception):
+    pass

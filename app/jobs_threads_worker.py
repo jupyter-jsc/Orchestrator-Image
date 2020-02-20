@@ -6,6 +6,7 @@ from contextlib import closing
 
 from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
+from app.utils_common import SpawnException
 
 def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, request_headers, escapedusername, servername, server_info):
     try:
@@ -62,43 +63,43 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
     # Check if it's the cron test job
     try:
         cron_info = utils_file_loads.get_cron_info()
-        user, servernameshort = request_json.get('servername', ':').split(':')
+        user, servernameshort = request_json.get('servername', ':').split(':')  # @UnusedVariable
         if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('servername', '<undefined>') == servernameshort:
-          if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('account', '<undefined>') == request_headers.get('account'):
-            if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('project', '<undefined>') == request_headers.get('project'):
-              if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('partition', '<undefined>') == request_json.get('partition'):
-                # get refresh token
-                unity_file = utils_file_loads.get_unity()
-                refresh_token = unity_file.get(request_headers.get('tokenurl'), {}).get('immune_tokens', [''])[0]
-                # get access token
-                client_id = unity_file.get(request_headers.get('tokenurl'), {}).get('client_id', '')
-                client_secret = unity_file.get(request_headers.get('tokenurl'), {}).get('client_secret', '')
-                unity_cert = unity_file.get(request_headers.get('tokenurl'), {}).get('certificate', False)
-                scopes = unity_file.get(request_headers.get('authorizeurl'), {}).get('scope')
-                tokeninfo_url = unity_file.get(request_headers.get('tokenurl'), {}).get('links', {}).get('tokeninfo', '')
-                b64_key = base64.b64encode(bytes('{}:{}'.format(client_id, client_secret),'utf8')).decode('utf8')
-                headers = {
-                          'Accept': 'application/json',
-                          'Authorization': 'Basic {}'.format(b64_key)
-                          }
-                data = {
-                       'refresh_token': refresh_token,
-                       'grant_type': 'refresh_token',
-                       'scope': ' '.join(scopes)
-                       }
-                with closing(requests.post(request_headers.get('tokenurl'), headers=headers, data=data, verify=unity_cert)) as r:
-                    if r.status_code != 200:
-                        raise Exception("uuidcode={} Could not receive access_token: {} {}".format(uuidcode, r.status_code, r.text))
-                    access_token = r.json().get('access_token')
-                # get expire
-                with closing(requests.get(tokeninfo_url,
-                                          headers = { 'Authorization': 'Bearer {}'.format(access_token) },
-                                          verify = unity_cert,
-                                          timeout = 1800)) as r:
-                    expire = r.json().get('exp')
-                request_headers['accesstoken'] = access_token
-                request_headers['expire'] = '{}'.format(expire)
-                request_headers['refreshtoken'] = refresh_token
+            if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('account', '<undefined>') == request_headers.get('account'):
+                if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('project', '<undefined>') == request_headers.get('project'):
+                    if cron_info.get('systems', {}).get(request_json.get('system').upper(), {}).get('partition', '<undefined>') == request_json.get('partition'):
+                        # get refresh token
+                        unity_file = utils_file_loads.get_unity()
+                        refresh_token = unity_file.get(request_headers.get('tokenurl'), {}).get('immune_tokens', [''])[0]
+                        # get access token
+                        client_id = unity_file.get(request_headers.get('tokenurl'), {}).get('client_id', '')
+                        client_secret = unity_file.get(request_headers.get('tokenurl'), {}).get('client_secret', '')
+                        unity_cert = unity_file.get(request_headers.get('tokenurl'), {}).get('certificate', False)
+                        scopes = unity_file.get(request_headers.get('authorizeurl'), {}).get('scope')
+                        tokeninfo_url = unity_file.get(request_headers.get('tokenurl'), {}).get('links', {}).get('tokeninfo', '')
+                        b64_key = base64.b64encode(bytes('{}:{}'.format(client_id, client_secret),'utf8')).decode('utf8')
+                        headers = {
+                                  'Accept': 'application/json',
+                                  'Authorization': 'Basic {}'.format(b64_key)
+                                  }
+                        data = {
+                               'refresh_token': refresh_token,
+                               'grant_type': 'refresh_token',
+                               'scope': ' '.join(scopes)
+                               }
+                        with closing(requests.post(request_headers.get('tokenurl'), headers=headers, data=data, verify=unity_cert)) as r:
+                            if r.status_code != 200:
+                                raise Exception("uuidcode={} Could not receive access_token: {} {}".format(uuidcode, r.status_code, r.text))
+                            access_token = r.json().get('access_token')
+                        # get expire
+                        with closing(requests.get(tokeninfo_url,
+                                                  headers = { 'Authorization': 'Bearer {}'.format(access_token) },
+                                                  verify = unity_cert,
+                                                  timeout = 1800)) as r:
+                            expire = r.json().get('exp')
+                        request_headers['accesstoken'] = access_token
+                        request_headers['expire'] = '{}'.format(expire)
+                        request_headers['refreshtoken'] = refresh_token
     except:
         app_logger.exception("uuidcode={}, Could not check if it's a cron job server".format(uuidcode))
     # Delete all server with this name (there should be none, but better safe than sorry)
@@ -118,14 +119,18 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                                                     request_headers.get('escapedusername'),
                                                                     request_headers.get('servername'),
                                                                     app_database)
-    except:
-        app_logger.exception("uuidcode={} - Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
+    except (SpawnException, Exception) as e:
+        if type(e).__name__ == "SpawnException":
+            error_msg = str(e)
+        else:
+            error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system'))
+        app_logger.exception("uuidcode={} - error_msg: {} -  Could not create Header. Send Cancel to JupyterHub and stop function. {} {}".format(uuidcode, error_msg, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
                                 app_urls.get('hub', {}).get('url_cancel'),
                                 request_headers.get("jhubtoken"),
-                                "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system')),
+                                error_msg,
                                 request_headers.get('escapedusername'),
                                 request_headers.get('servername'))
         return
@@ -172,14 +177,18 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
             j4j_worker_header['kernelurl'] = headers['kernelurl']
             j4j_worker_header['filedir'] = headers['filedir']
             j4j_worker_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
-    except:
-        app_logger.exception("uuidcode={} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
+    except (SpawnException, Exception) as e:
+        if type(e).__name__ == "SpawnException":
+            error_msg = str(e)
+        else:
+            error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system'))
+        app_logger.exception("uuidcode={} - error_msg: {} -  J4J_Worker communication failed. {} {}".format(uuidcode, error_msg, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
                                 app_urls.get('hub', {}).get('url_cancel'),
                                 request_headers.get('jhubtoken'),
-                                "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system')),
+                                error_msg,
                                 request_headers.get('escapedusername'),
                                 request_headers.get('servername'))
         return
@@ -198,6 +207,7 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
     j4j_worker_header['servername'] = request_json.get('servername')
     j4j_worker_header['system'] = request_json.get('system')
     j4j_worker_header['port'] = str(request_json.get('port'))
+    j4j_worker_header['spawnget'] = "True"
     try:
         utils_hub_update.status(app_logger,
                                 uuidcode,
@@ -220,15 +230,18 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                               uuidcode,
                                               method,
                                               method_args)
-
-    except:
-        app_logger.exception("uuidcode={} - J4J_Worker communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
+    except (SpawnException, Exception) as e:
+        if type(e).__name__ == "SpawnException":
+            error_msg = str(e)
+        else:
+            error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system'))
+        app_logger.exception("uuidcode={} - error-msg: {} - J4J_Worker communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, error_msg, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
                                 app_urls.get('hub', {}).get('url_cancel'),
                                 request_headers.get('jhubtoken'),
-                                "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system')),
+                                error_msg,
                                 request_headers.get('escapedusername'),
                                 request_headers.get('servername'))
         try:
