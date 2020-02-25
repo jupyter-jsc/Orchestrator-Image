@@ -11,8 +11,9 @@ from contextlib import closing
 
 from app.utils_file_loads import get_unity
 from app.utils_hub_update import token
-from app.utils_common import remove_secret
+from app.utils_common import remove_secret, SpawnException
 from app.utils_db import set_skip
+import json
 
 
 def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, accesstoken, expire, jhubtoken, app_hub_url_proxy_route, app_hub_token_url, username, servername, app_database):
@@ -48,6 +49,23 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                                            verify = cert_path,
                                            timeout = 1800)) as r:
                     app_logger.trace("uuidcode={} - Unity Response: {} {} {} {}".format(uuidcode, r.text, r.status_code, r.headers, r.json))
+                    if r.status_code == 400:
+                        # wrong refresh_token, send cancel
+                        error_msg = "Unknown Error. An Administrator is informed."
+                        try:
+                            r_json = json.loads(r.text)
+                            if r_json.get('error_description', '') != "Invalid request; wrong refresh token":
+                                app_logger.error("uuidcode={} - Received unknown answer from Unity: {}".format(uuidcode, r.text))
+                            else:
+                                error_msg = "Invalid token. Please logout and login again."
+                        except:
+                            try:
+                                app_logger.exception("uuidcode={} - Could not check for Unity error description: {}".format(uuidcode, r.text))
+                            except:
+                                app_logger.exception("uuidcode={} - Could not check for Unity error description".format(uuidcode))
+                        # strange but ... we have to wait for 5 seconds. Otherwise we're too fast for JupyterHub and the user will not see this error message
+                        time.sleep(5)
+                        raise SpawnException(error_msg)
                     accesstoken = r.json().get('access_token')
                 app_logger.info("uuidcode={} - Get to {}".format(uuidcode, tokeninfo_url))
                 with closing(requests.get(tokeninfo_url,
@@ -57,6 +75,8 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                     app_logger.trace("uuidcode={} - Unity Response: {} {} {} {}".format(uuidcode, r.text, r.status_code, r.headers, r.json))
                     expire = r.json().get('exp')
                     break
+            except SpawnException as e:
+                raise SpawnException(str(e))
             except:
                 app_logger.warning("uuidcode={} - Could not update token. This was the {}/10 try. {}".format(uuidcode, i+1, "Raise Exception" if i==9 else "Try again in 30 seconds"))
                 if i==0:
@@ -70,6 +90,8 @@ def renew_token(app_logger, uuidcode, token_url, authorize_url, refreshtoken, ac
                 if i==9:
                     raise Exception("uuidcode={} - Tried 10 times".format(uuidcode))
                 time.sleep(30)
+    except SpawnException as e2:
+        raise SpawnException(str(e2))
     except:
         app_logger.warning("uuidcode={} - Could not update token".format(uuidcode))
         raise Exception("uuidcode={} - Could not update token".format(uuidcode))
