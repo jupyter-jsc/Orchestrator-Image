@@ -36,6 +36,11 @@ def get_unicore():
         unicore_file = json.load(f)
     return unicore_file
 
+def get_urls():
+    with open('/etc/j4j/j4j_mount/j4j_common/urls.json', 'r') as f:
+        urls = json.load(f)
+    return urls
+
 def get_resources():
     with open('/etc/j4j/j4j_mount/j4j_common/resources.json', 'r') as f:
         resources = json.load(f)
@@ -45,3 +50,11 @@ def get_cron_info():
     with open('/etc/j4j/j4j_mount/j4j_common/cronjob.json', 'r') as f:
         cron = json.load(f)
     return cron
+
+
+def get_docker_master_token():
+    with open('/etc/j4j/j4j_mount/j4j_token/dockermaster.token', 'r') as f:
+        token = f.read().rstrip()
+    return token
+
+

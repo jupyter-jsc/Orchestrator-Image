@@ -4,7 +4,38 @@ import os
 from time import sleep
 
 from app import utils_hub_update, utils_db, utils_file_loads
+from contextlib import closing
+import requests
 
+
+def check_docker_status_new(app_logger, uuidcode, servername):
+    """
+    Headers:
+        intern-authorization
+        uuidcode
+        email
+        servername        
+    """    
+    docker_master_token = utils_file_loads.get_docker_master_token()
+    s_email, s_servername = servername.split(':')
+    headers = {
+        "Intern-Authorization": docker_master_token,
+        "uuidcode": uuidcode,
+        "email": s_email,
+        "servername": s_servername
+        }
+    urls = utils_file_loads.get_urls()
+    url = urls.get('dockermaster', {}).get('url_jlab', '<no_jlab_url_defined>')
+    with closing(requests.get(url,
+                              headers=headers,
+                              verify=False,
+                              timeout=30)) as r:
+        app_logger.debug("uuidcode={} - DockerMaster Response: {} {}".format(uuidcode, r.status_code, r.text))
+        if r.status_code == 200:
+            return r.text.lower() == "true"
+        else:
+            return False
+        
 
 def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername, escapedusername, jhubtoken):
     uuidcode2 = uuid.uuid4().hex
@@ -72,6 +103,55 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                            uuidcode,
                            servername,
                            app_database)
+
+def start_docker_new(app_logger, uuidcode, servername, port, account, environment):
+    """
+    Headers:
+        intern-authorization
+        uuidcode
+    Body:
+        servername
+        email
+        environments
+        image
+        port
+        jupyterhub_api_url
+    """
+    servername_at = servername.replace('@', '_at_')
+    email = servername_at.split(':')[0]
+    servername_short = servername_at.split(':')[1]
+    docker_master_token = utils_file_loads.get_docker_master_token()
+    environment["HPCACCOUNTS"] = get_hpc_accounts(app_logger,
+                                                  uuidcode,
+                                                  environment.get('hpcaccounts', []))
+    urls = utils_file_loads.get_urls()
+    url = urls.get('dockermaster', {}).get('url_jlab', '<no_jlab_url_defined>')
+    headers = {
+        "Intern-Authorization": docker_master_token,
+        "uuidcode": uuidcode
+        }
+    body = {
+        "servername": servername_short,
+        "email": email,
+        "environments": environment,
+        "image": utils_file_loads.image_name_to_image(account),
+        "port": port,
+        "jupyterhub_api_url": environment.get('JUPYTERHUB_API_URL', 'http://j4j_proxy:8000/hub/api')
+        }
+    with closing(requests.post(url,
+                               headers=headers,
+                               json=body,
+                               verify=False,
+                               timeout=30)) as r:
+        if r.status_code == 200 and r.text.lower() == "true":
+            app_logger.debug("uuidcode={} - DockerMaster response: Positive".format(uuidcode))
+            return True
+        elif r.status_code == 200 and r.text.lower() == "false":
+            app_logger.debug("uuidcode={} - DockerMaster response: Negative".format(uuidcode))
+            return False
+        else:
+            app_logger.error("uuidcod={} - DockerMaster unknown response: {} {}".format(uuidcode, r.status_code, r.text))
+            return False
 
 def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escapedusername, jhubtoken, port, account, environment):
     servername_at = servername.replace('@', '_at_')
@@ -168,6 +248,26 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
                           app_database,
                           'False')
     return
+
+def delete_docker_new(app_logger, uuidcode, servername):
+    app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))
+    docker_master_token = utils_file_loads.get_docker_master_token()
+    s_email, s_servername = servername.split(':')
+    headers = {
+        "Intern-Authorization": docker_master_token,
+        "uuidcode": uuidcode,
+        "email": s_email,
+        "servername": s_servername
+        }
+    urls = utils_file_loads.get_urls()
+    url = urls.get('dockermaster', {}).get('url_jlab', '<no_jlab_url_defined>')
+    with closing(requests.delete(url,
+                                 headers=headers,
+                                 verify=False,
+                                 timeout=30)) as r:
+        app_logger.debug("uuidcode={} - DockerMaster Response: {} {}".format(uuidcode, r.status_code, r.text))
+        if r.status_code != 202:
+            app_logger.error("uuidcode={} - Could not Delete JupyterLab via DockerMaster".format(uuidcode))
 
 def delete_docker(app_logger, uuidcode, servername, docker_delete_folder):
     app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))

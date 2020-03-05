@@ -71,14 +71,34 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                           'True')
         try:
             if info.get('system').lower() == "docker":
-                # Let's check it by ourself
-                jobs_threads_docker.check_docker_status(app_logger,
-                                                        uuidcode,
-                                                        app_urls,
-                                                        app_database,
-                                                        request_headers.get('servername'),
-                                                        request_headers.get('escapedusername'),
-                                                        info.get('jhubtoken'))
+                running = jobs_threads_docker.check_docker_status_new(app_logger,
+                                                                      uuidcode,
+                                                                      request_headers.get('servername'))
+                if running:
+                    # Inform JupyterHub that the JupyterLab is still running
+                    utils_hub_update.status(app_logger,
+                                            uuidcode,
+                                            app_urls.get('hub', {}).get('url_proxy_route'),
+                                            app_urls.get('hub', {}).get('url_status'),
+                                            info.get('jhubtoken'),
+                                            'running',
+                                            request_headers.get('escapedusername'),
+                                            request_headers.get('servername'))
+                else:
+                    # Input is not true, so the Docker Container has stopped
+                    utils_hub_update.status(app_logger,
+                                            uuidcode,
+                                            app_urls.get('hub', {}).get('url_proxy_route'),
+                                            app_urls.get('hub', {}).get('url_status'),
+                                            info.get('jhubtoken'),
+                                            'stopped',
+                                            request_headers.get('escapedusername'),
+                                            request_headers.get('servername'))
+                    utils_db.remove_entrys(app_logger,
+                                           uuidcode,
+                                           request_headers.get('servername'),
+                                           app_database)
+                    
                 # Unblock this server for other calls
                 utils_db.set_skip(app_logger,
                                   uuidcode,
@@ -112,16 +132,27 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
     try:
         app_logger.trace("uuidcode={} - Begin of post thread.".format(uuidcode))
         if request_json.get('system').lower() == 'docker':
-            jobs_threads_docker.start_docker(app_logger,
-                                             uuidcode,
-                                             app_urls,
-                                             app_database,
-                                             request_headers.get('servername'),
-                                             request_headers.get('escapedusername'),
-                                             request_headers.get('jhubtoken'),
-                                             request_json.get('port'),
-                                             request_headers.get('account'),
-                                             request_json.get('Environment', {}))
+            running = jobs_threads_docker.start_docker_new(app_logger,
+                                                           uuidcode,
+                                                           request_headers.get('servername'),
+                                                           request_json.get('port'),
+                                                           request_headers.get('account'),
+                                                           request_json.get('Environment', {}))
+            if running:
+                utils_hub_update.status(app_logger,
+                                        uuidcode,
+                                        app_urls.get('hub', {}).get('url_proxy_route'),
+                                        app_urls.get('hub', {}).get('url_status'),
+                                        request_headers.get('jhubtoken'),
+                                        'running',
+                                        request_headers.get('escapedusername'),
+                                        request_headers.get('servername'))
+            # set spawning to False (it will be set True when it's created)
+            utils_db.set_spawning(app_logger,
+                                  uuidcode,
+                                  request_headers.get('servername'),
+                                  app_database,
+                                  'False')
         else:
             jobs_threads_worker.start_unicore_job(app_logger,
                                                   uuidcode,
@@ -160,10 +191,9 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
         try:
             system, kernelurl, filedir, port, account, project = server
             if system.lower() == "docker":
-                jobs_threads_docker.delete_docker(app_logger,
-                                                  uuidcode,
-                                                  request_headers.get('servername'),
-                                                  app_urls.get('docker', {}).get('delete_folder'))
+                jobs_threads_docker.delete_docker_new(app_logger,
+                                                      uuidcode,
+                                                      request_headers.get('servername'))
                 continue
             else:
                 headers, delete_header = jobs_threads_worker.delete_job(app_logger,
