@@ -3,9 +3,11 @@ import os
 
 from time import sleep
 
-from app import utils_hub_update, utils_db, utils_file_loads
+from app import utils_hub_update, utils_db, utils_file_loads,\
+    tunnel_communication
 from contextlib import closing
 import requests
+from app.utils_file_loads import get_hdfcloud
 
 
 def check_docker_status_new(app_logger, uuidcode, servername):
@@ -104,7 +106,7 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                            servername,
                            app_database)
 
-def start_docker_new(app_logger, uuidcode, servername, port, account, environment):
+def start_docker_new(app_logger, uuidcode, servername, port, account, environment, app_tunnel_url, app_tunnel_url_remote):
     """
     Headers:
         intern-authorization
@@ -145,6 +147,33 @@ def start_docker_new(app_logger, uuidcode, servername, port, account, environmen
                                timeout=30)) as r:
         if r.status_code == 200 and r.text.lower() == "true":
             app_logger.debug("uuidcode={} - DockerMaster response: Positive".format(uuidcode))
+            tunnel_header = {'Intern-Authorization': utils_file_loads.get_j4j_tunnel_token(),
+                             'uuidcode': uuidcode}
+
+            tunnel_data = {'account': servername,
+                           'system': "hdfcloud",
+                           'hostname': uuidcode,
+                           'port': port}
+            
+            hdfcloud = get_hdfcloud()
+            nodes = hdfcloud.get('nodes', [])
+            node = tunnel_communication.get_remote_node(app_logger,
+                                                        uuidcode,
+                                                        app_tunnel_url_remote,
+                                                        nodes)
+            app_logger.debug("uuidcode={} - Use {} as node for tunnel".format(uuidcode, node))
+            for i in range(0,10):
+                try:
+                    tunnel_communication.j4j_start_tunnel(app_logger,
+                                                          uuidcode,
+                                                          app_tunnel_url,
+                                                          tunnel_header,
+                                                          tunnel_data)
+                except:
+                    if i == 9:
+                        app_logger.exception("uuidcode={} - Could not start Tunnel for HDF-Cloud JupyterLab: {}".format(uuidcode, uuidcode))
+                        return False
+                    sleep(3)    
             return True
         elif r.status_code == 200 and r.text.lower() == "false":
             app_logger.debug("uuidcode={} - DockerMaster response: Negative".format(uuidcode))
@@ -249,7 +278,7 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
                           'False')
     return
 
-def delete_docker_new(app_logger, uuidcode, servername):
+def delete_docker_new(app_logger, uuidcode, servername, app_urls):
     app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))
     docker_master_token = utils_file_loads.get_docker_master_token()
     s_email, s_servername = servername.split(':')
@@ -268,6 +297,17 @@ def delete_docker_new(app_logger, uuidcode, servername):
         app_logger.debug("uuidcode={} - DockerMaster Response: {} {}".format(uuidcode, r.status_code, r.text))
         if r.status_code != 202:
             app_logger.error("uuidcode={} - Could not Delete JupyterLab via DockerMaster".format(uuidcode))
+    # Kill the tunnel
+    tunnel_info = { "servername": s_servername }
+    try:
+        app_logger.debug("uuidcode={} - Close ssh tunnel".format(uuidcode))
+        tunnel_communication.close(app_logger,
+                                   uuidcode,
+                                   app_urls.get('tunnel', {}).get('url_tunnel'),
+                                   tunnel_info)
+    except:
+        app_logger.exception("uuidcode={} - Could not stop tunnel. tunnel_info: {} {}".format(uuidcode, tunnel_info, app_urls.get('tunnel', {}).get('url_tunnel')))
+
 
 def delete_docker(app_logger, uuidcode, servername, docker_delete_folder):
     app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))

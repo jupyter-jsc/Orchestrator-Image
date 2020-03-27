@@ -137,7 +137,9 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                                            request_headers.get('servername'),
                                                            request_json.get('port'),
                                                            request_headers.get('account'),
-                                                           request_json.get('Environment', {}))
+                                                           request_json.get('Environment', {}),
+                                                           app_urls.get('tunnel', {}).get('url_tunnel'),
+                                                           app_urls.get('tunnel', {}).get('url_remote'))
             if running:
                 utils_hub_update.status(app_logger,
                                         uuidcode,
@@ -145,6 +147,15 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                         app_urls.get('hub', {}).get('url_status'),
                                         request_headers.get('jhubtoken'),
                                         'running',
+                                        request_headers.get('escapedusername'),
+                                        request_headers.get('servername'))
+            else:
+                utils_hub_update.cancel(app_logger,
+                                        uuidcode,
+                                        app_urls.get('hub', {}).get('url_proxy_route'),
+                                        app_urls.get('hub', {}).get('url_cancel'),
+                                        request_headers.get('jhubtoken'),
+                                        "Could not start. An Administrator is informed.",
                                         request_headers.get('escapedusername'),
                                         request_headers.get('servername'))
             # set spawning to False (it will be set True when it's created)
@@ -193,7 +204,8 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
             if system.lower() == "docker":
                 jobs_threads_docker.delete_docker_new(app_logger,
                                                       uuidcode,
-                                                      request_headers.get('servername'))
+                                                      request_headers.get('servername'),
+                                                      app_urls)
                 continue
             else:
                 headers, delete_header = jobs_threads_worker.delete_job(app_logger,

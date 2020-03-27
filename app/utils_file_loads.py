@@ -16,6 +16,11 @@ def get_j4j_orchestrator_token():
         token = f.read().rstrip()
     return token
 
+def get_j4j_tunnel_token():
+    with open('/etc/j4j/j4j_mount/j4j_token/tunnel.token') as f:
+        token = f.read().rstrip()
+    return token
+
 def get_j4j_worker_token():
     with open('/etc/j4j/j4j_mount/j4j_token/worker.token', 'r') as f:
         token = f.read().rstrip()
@@ -51,6 +56,10 @@ def get_cron_info():
         cron = json.load(f)
     return cron
 
+def get_hdfcloud():
+    with open('/etc/j4j/j4j_mount/j4j_common/hdf_cloud.json', 'r') as f:
+        ret = json.load(f)
+    return ret
 
 def get_docker_master_token():
     with open('/etc/j4j/j4j_mount/j4j_token/dockermaster.token', 'r') as f:
