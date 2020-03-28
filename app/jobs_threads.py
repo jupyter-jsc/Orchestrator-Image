@@ -139,7 +139,8 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                                            request_json.get('port'),
                                                            request_headers.get('account'),
                                                            request_json.get('Environment', {}),
-                                                           request_headers.get('jhubtoken'))
+                                                           app_urls.get('tunnel', {}).get('url_tunnel'),
+                                                           app_urls.get('tunnel', {}).get('url_remote'))
             if running:
                 utils_hub_update.status(app_logger,
                                         uuidcode,
@@ -204,7 +205,8 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
             if system.lower() == "docker":
                 jobs_threads_docker.delete_docker_new(app_logger,
                                                       uuidcode,
-                                                      request_headers.get('servername'))
+                                                      request_headers.get('servername'),
+                                                      app_urls)
                 continue
             else:
                 headers, delete_header = jobs_threads_worker.delete_job(app_logger,
