@@ -145,7 +145,7 @@ def start_docker_new(app_logger, uuidcode, servername, port, account, environmen
                                json=body,
                                verify=False,
                                timeout=30)) as r:
-        if r.status_code == 200 and r.text.lower() == "true":
+        if r.status_code == 200:
             app_logger.debug("uuidcode={} - DockerMaster response: Positive".format(uuidcode))
             tunnel_header = {'Intern-Authorization': utils_file_loads.get_j4j_tunnel_token(),
                              'uuidcode': uuidcode}
@@ -175,7 +175,7 @@ def start_docker_new(app_logger, uuidcode, servername, port, account, environmen
                         return False
                     sleep(3)    
             return True
-        elif r.status_code == 200 and r.text.lower() == "false":
+        elif r.status_code == 501:
             app_logger.debug("uuidcode={} - DockerMaster response: Negative".format(uuidcode))
             return False
         else:
