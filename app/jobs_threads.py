@@ -134,6 +134,7 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
         if request_json.get('system').lower() == 'docker':
             running = jobs_threads_docker.start_docker_new(app_logger,
                                                            uuidcode,
+                                                           app_database,
                                                            request_headers.get('servername'),
                                                            request_json.get('port'),
                                                            request_headers.get('account'),
