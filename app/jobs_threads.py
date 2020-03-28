@@ -139,6 +139,7 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                                            request_json.get('port'),
                                                            request_headers.get('account'),
                                                            request_json.get('Environment', {}),
+                                                           request_headers.get('jhubtoken'),
                                                            app_urls.get('tunnel', {}).get('url_tunnel'),
                                                            app_urls.get('tunnel', {}).get('url_remote'))
             if running:

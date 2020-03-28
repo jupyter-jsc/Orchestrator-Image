@@ -106,7 +106,7 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                            servername,
                            app_database)
 
-def start_docker_new(app_logger, uuidcode, servername, port, account, environment, app_tunnel_url, app_tunnel_url_remote):
+def start_docker_new(app_logger, uuidcode, app_database, servername, port, account, environment, jhubtoken, app_tunnel_url, app_tunnel_url_remote):
     """
     Headers:
         intern-authorization
