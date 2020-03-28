@@ -134,10 +134,12 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
         if request_json.get('system').lower() == 'docker':
             running = jobs_threads_docker.start_docker_new(app_logger,
                                                            uuidcode,
+                                                           app_database,
                                                            request_headers.get('servername'),
                                                            request_json.get('port'),
                                                            request_headers.get('account'),
-                                                           request_json.get('Environment', {}))
+                                                           request_json.get('Environment', {}),
+                                                           request_headers.get('jhubtoken'))
             if running:
                 utils_hub_update.status(app_logger,
                                         uuidcode,
@@ -145,6 +147,15 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                         app_urls.get('hub', {}).get('url_status'),
                                         request_headers.get('jhubtoken'),
                                         'running',
+                                        request_headers.get('escapedusername'),
+                                        request_headers.get('servername'))
+            else:
+                utils_hub_update.cancel(app_logger,
+                                        uuidcode,
+                                        app_urls.get('hub', {}).get('url_proxy_route'),
+                                        app_urls.get('hub', {}).get('url_cancel'),
+                                        request_headers.get('jhubtoken'),
+                                        "Could not start. An Administrator is informed.",
                                         request_headers.get('escapedusername'),
                                         request_headers.get('servername'))
             # set spawning to False (it will be set True when it's created)

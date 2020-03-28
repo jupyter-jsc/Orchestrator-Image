@@ -30,9 +30,9 @@ def check_docker_status_new(app_logger, uuidcode, servername):
                               headers=headers,
                               verify=False,
                               timeout=30)) as r:
-        app_logger.debug("uuidcode={} - DockerMaster Response: {} {}".format(uuidcode, r.status_code, r.text))
+        app_logger.debug("uuidcode={} - DockerMaster Response: {} !{}!".format(uuidcode, r.status_code, r.text.strip().replace("\\", "").replace("'", "").replace('"', '').lower()))
         if r.status_code == 200:
-            return r.text.lower() == "true"
+            return r.text.strip().replace("\\", "").replace("'", "").replace('"', '').lower() == "true"
         else:
             return False
         
@@ -104,7 +104,7 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                            servername,
                            app_database)
 
-def start_docker_new(app_logger, uuidcode, servername, port, account, environment):
+def start_docker_new(app_logger, uuidcode, app_database, servername, port, account, environment, jhubtoken):
     """
     Headers:
         intern-authorization
@@ -120,6 +120,15 @@ def start_docker_new(app_logger, uuidcode, servername, port, account, environmen
     servername_at = servername.replace('@', '_at_')
     email = servername_at.split(':')[0]
     servername_short = servername_at.split(':')[1]
+    dockerimage = utils_file_loads.image_name_to_image(account)
+    app_logger.debug("uuidcode={} - Add server to database: {}".format(uuidcode, servername_at))
+    utils_db.create_entry_docker(app_logger,
+                                 uuidcode,
+                                 app_database,
+                                 servername,
+                                 jhubtoken,
+                                 port,
+                                 dockerimage)
     docker_master_token = utils_file_loads.get_docker_master_token()
     environment["HPCACCOUNTS"] = get_hpc_accounts(app_logger,
                                                   uuidcode,
@@ -143,14 +152,14 @@ def start_docker_new(app_logger, uuidcode, servername, port, account, environmen
                                json=body,
                                verify=False,
                                timeout=30)) as r:
-        if r.status_code == 200 and r.text.lower() == "true":
+        if r.status_code == 200:
             app_logger.debug("uuidcode={} - DockerMaster response: Positive".format(uuidcode))
             return True
-        elif r.status_code == 200 and r.text.lower() == "false":
+        elif r.status_code == 501:
             app_logger.debug("uuidcode={} - DockerMaster response: Negative".format(uuidcode))
             return False
         else:
-            app_logger.error("uuidcod={} - DockerMaster unknown response: {} {}".format(uuidcode, r.status_code, r.text))
+            app_logger.error("uuidcode={} - DockerMaster unknown response: {} {}".format(uuidcode, r.status_code, r.text))
             return False
 
 def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escapedusername, jhubtoken, port, account, environment):
