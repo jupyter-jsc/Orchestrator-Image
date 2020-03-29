@@ -182,7 +182,8 @@ def start_docker_new(app_logger, uuidcode, app_database, servername, port, accou
                     if i == 9:
                         app_logger.exception("uuidcode={} - Could not start Tunnel for HDF-Cloud JupyterLab: {}".format(uuidcode, uuidcode))
                         return False
-                    sleep(3)    
+                    sleep(3)
+                break
             return True
         elif r.status_code == 501:
             app_logger.debug("uuidcode={} - DockerMaster response: Negative".format(uuidcode))
