@@ -106,7 +106,7 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                            servername,
                            app_database)
 
-def start_docker_new(app_logger, uuidcode, app_database, servername, port, account, environment, jhubtoken, app_tunnel_url, app_tunnel_url_remote):
+def start_docker_new(app_logger, uuidcode, app_database, servername, port, service, dashboard, account, environment, jhubtoken, app_tunnel_url, app_tunnel_url_remote):
     """
     Headers:
         intern-authorization
@@ -122,7 +122,12 @@ def start_docker_new(app_logger, uuidcode, app_database, servername, port, accou
     servername_at = servername.replace('@', '_at_')
     email = servername_at.split(':')[0]
     servername_short = servername_at.split(':')[1]
-    dockerimage = utils_file_loads.image_name_to_image(account)
+    dashboards = {}
+    if service == "JupyterLab":
+        dockerimage = utils_file_loads.image_name_to_image(account)
+    elif service == "Dashboards":
+        dashboards = utils_file_loads.get_dashboards()
+        dockerimage = dashboards.get(dashboard, {}).get("Dockerimage")
     app_logger.debug("uuidcode={} - Add server to database: {}".format(uuidcode, servername_at))
     utils_db.create_entry_docker(app_logger,
                                  uuidcode,
@@ -143,6 +148,8 @@ def start_docker_new(app_logger, uuidcode, app_database, servername, port, accou
         }
     body = {
         "servername": servername_short,
+        "service": service,
+        "dashboard": dashboard,
         "email": email,
         "environments": environment,
         "image": utils_file_loads.image_name_to_image(account),

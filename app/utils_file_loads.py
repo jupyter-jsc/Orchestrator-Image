@@ -66,4 +66,9 @@ def get_docker_master_token():
         token = f.read().rstrip()
     return token
 
+def get_dashboards():
+    with open('/etc/j4j/j4j_mount/j4j_common/dashboards.json', 'r') as f:
+        ret = json.load(f)
+    return ret
+
 

@@ -137,6 +137,8 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                                            app_database,
                                                            request_headers.get('servername'),
                                                            request_json.get('port'),
+                                                           request_json.get('service'),
+                                                           request_json.get('dashboard'),
                                                            request_headers.get('account'),
                                                            request_json.get('Environment', {}),
                                                            request_headers.get('jhubtoken'),

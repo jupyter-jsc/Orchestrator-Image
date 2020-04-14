@@ -76,6 +76,7 @@ def create_json(app_logger, uuidcode, request_json):
         "partition": request_json.get("partition"),
         "reservation": request_json.get("reservation"),
         "Resources": request_json.get("Resources", {}).copy(),
+        "service": request_json.get("service"),
         "system": request_json.get("system"),
         "Checkboxes": request_json.get("Checkboxes", []).copy(),
         "port": request_json.get("port")
