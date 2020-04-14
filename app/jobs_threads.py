@@ -70,7 +70,7 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                           app_database,
                           'True')
         try:
-            if info.get('system').lower() == "docker":
+            if info.get('system').lower() == "docker" or infos.get('system') == "HDF-Cloud":
                 running = jobs_threads_docker.check_docker_status_new(app_logger,
                                                                       uuidcode,
                                                                       request_headers.get('servername'))
@@ -131,7 +131,7 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
 def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_database):
     try:
         app_logger.trace("uuidcode={} - Begin of post thread.".format(uuidcode))
-        if request_json.get('system').lower() == 'docker':
+        if request_json.get('system').lower() == 'docker' or request_json.get('system') == "HDF-Cloud":
             running = jobs_threads_docker.start_docker_new(app_logger,
                                                            uuidcode,
                                                            app_database,
@@ -205,7 +205,7 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
         docker = False
         try:
             system, kernelurl, filedir, port, account, project = server
-            if system.lower() == "docker":
+            if system.lower() == "docker" or system == "HDF-Cloud":
                 jobs_threads_docker.delete_docker_new(app_logger,
                                                       uuidcode,
                                                       request_headers.get('servername'),
