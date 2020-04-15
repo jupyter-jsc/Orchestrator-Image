@@ -152,7 +152,7 @@ def start_docker_new(app_logger, uuidcode, app_database, servername, port, servi
         "dashboard": dashboard,
         "email": email,
         "environments": environment,
-        "image": utils_file_loads.image_name_to_image(account),
+        "image": dockerimage,
         "port": port,
         "jupyterhub_api_url": environment.get('JUPYTERHUB_API_URL', 'http://j4j_proxy:8000/hub/api')
         }
