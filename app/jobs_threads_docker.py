@@ -127,7 +127,7 @@ def start_docker_new(app_logger, uuidcode, app_database, servername, port, servi
         dockerimage = utils_file_loads.image_name_to_image(account)
     elif service == "Dashboard":
         dashboards = utils_file_loads.get_dashboards()
-        dockerimage = dashboards.get(dashboard, {}).get("Dockerimage")
+        dockerimage = dashboards.get(dashboard, {}).get("image")
     app_logger.debug("uuidcode={} - Add server to database: {}".format(uuidcode, servername_at))
     utils_db.create_entry_docker(app_logger,
                                  uuidcode,
