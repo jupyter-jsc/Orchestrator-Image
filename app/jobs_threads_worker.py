@@ -159,7 +159,11 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
     # Call worker post
     try:
         method = "POST"
-        method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
+        if request_json.get('service', '').lower() == 'dashboard':
+            url = app_urls.get('worker', {}).get('url_dashboards')
+        else:
+            url = app_urls.get('worker', {}).get('url_jobs')
+        method_args = {"url": url,
                        "headers": j4j_worker_header,
                        "json": j4j_worker_json,
                        "certificate": False}
