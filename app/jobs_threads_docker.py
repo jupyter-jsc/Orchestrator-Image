@@ -3,8 +3,41 @@ import os
 
 from time import sleep
 
-from app import utils_hub_update, utils_db, utils_file_loads
+from app import utils_hub_update, utils_db, utils_file_loads,\
+    tunnel_communication
+from contextlib import closing
+import requests
+from app.utils_file_loads import get_hdfcloud
 
+
+def check_docker_status_new(app_logger, uuidcode, servername):
+    """
+    Headers:
+        intern-authorization
+        uuidcode
+        email
+        servername        
+    """    
+    docker_master_token = utils_file_loads.get_docker_master_token()
+    s_email, s_servername = servername.split(':')
+    headers = {
+        "Intern-Authorization": docker_master_token,
+        "uuidcode": uuidcode,
+        "email": s_email,
+        "servername": s_servername
+        }
+    urls = utils_file_loads.get_urls()
+    url = urls.get('dockermaster', {}).get('url_jlab', '<no_jlab_url_defined>')
+    with closing(requests.get(url,
+                              headers=headers,
+                              verify=False,
+                              timeout=30)) as r:
+        app_logger.debug("uuidcode={} - DockerMaster Response: {} !{}!".format(uuidcode, r.status_code, r.text.strip().replace("\\", "").replace("'", "").replace('"', '').lower()))
+        if r.status_code == 200:
+            return r.text.strip().replace("\\", "").replace("'", "").replace('"', '').lower() == "true"
+        else:
+            return False
+        
 
 def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername, escapedusername, jhubtoken):
     uuidcode2 = uuid.uuid4().hex
@@ -72,6 +105,99 @@ def check_docker_status(app_logger, uuidcode, app_urls, app_database, servername
                            uuidcode,
                            servername,
                            app_database)
+
+def start_docker_new(app_logger, uuidcode, app_database, servername, port, service, dashboard, account, environment, jhubtoken, app_tunnel_url, app_tunnel_url_remote):
+    """
+    Headers:
+        intern-authorization
+        uuidcode
+    Body:
+        servername
+        email
+        environments
+        image
+        port
+        jupyterhub_api_url
+    """
+    servername_at = servername.replace('@', '_at_')
+    email = servername_at.split(':')[0]
+    servername_short = servername_at.split(':')[1]
+    dashboards = {}
+    if service == "JupyterLab":
+        dockerimage = utils_file_loads.image_name_to_image(account)
+    elif service == "Dashboard":
+        dashboards = utils_file_loads.get_dashboards()
+        dockerimage = dashboards.get(dashboard, {}).get("image")
+    app_logger.debug("uuidcode={} - Add server to database: {}".format(uuidcode, servername_at))
+    utils_db.create_entry_docker(app_logger,
+                                 uuidcode,
+                                 app_database,
+                                 servername,
+                                 jhubtoken,
+                                 port,
+                                 dockerimage)
+    docker_master_token = utils_file_loads.get_docker_master_token()
+    environment["HPCACCOUNTS"] = get_hpc_accounts(app_logger,
+                                                  uuidcode,
+                                                  environment.get('hpcaccounts', []))
+    urls = utils_file_loads.get_urls()
+    url = urls.get('dockermaster', {}).get('url_jlab', '<no_jlab_url_defined>')
+    headers = {
+        "Intern-Authorization": docker_master_token,
+        "uuidcode": uuidcode
+        }
+    body = {
+        "servername": servername_short,
+        "service": service,
+        "dashboard": dashboard,
+        "email": email,
+        "environments": environment,
+        "image": dockerimage,
+        "port": port,
+        "jupyterhub_api_url": environment.get('JUPYTERHUB_API_URL', 'http://j4j_proxy:8000/hub/api')
+        }
+    with closing(requests.post(url,
+                               headers=headers,
+                               json=body,
+                               verify=False,
+                               timeout=30)) as r:
+        if r.status_code == 200:
+            app_logger.debug("uuidcode={} - DockerMaster response: Positive".format(uuidcode))
+            tunnel_header = {'Intern-Authorization': utils_file_loads.get_j4j_tunnel_token(),
+                             'uuidcode': uuidcode}
+
+            tunnel_data = {'account': servername,
+                           'system': "hdfcloud",
+                           'hostname': uuidcode,
+                           'port': port}
+            
+            hdfcloud = get_hdfcloud()
+            nodes = hdfcloud.get('nodes', [])
+            node = tunnel_communication.get_remote_node(app_logger,
+                                                        uuidcode,
+                                                        app_tunnel_url_remote,
+                                                        nodes)
+            app_logger.debug("uuidcode={} - Use {} as node for tunnel".format(uuidcode, node))
+            for i in range(0,10):
+                try:
+                    tunnel_communication.j4j_start_tunnel(app_logger,
+                                                          uuidcode,
+                                                          app_tunnel_url,
+                                                          tunnel_header,
+                                                          tunnel_data)
+                except:
+                    if i == 9:
+                        app_logger.exception("uuidcode={} - Could not start Tunnel for HDF-Cloud JupyterLab: {}".format(uuidcode, uuidcode))
+                        return False
+                    sleep(3)
+                break
+            return True
+        elif r.status_code == 501:
+            app_logger.debug("uuidcode={} - DockerMaster response: Negative".format(uuidcode))
+            return False
+        else:
+            app_logger.error("uuidcode={} - DockerMaster unknown response: {} {}".format(uuidcode, r.status_code, r.text))
+            return False
 
 def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escapedusername, jhubtoken, port, account, environment):
     servername_at = servername.replace('@', '_at_')
@@ -168,6 +294,37 @@ def start_docker(app_logger, uuidcode, app_urls, app_database, servername, escap
                           app_database,
                           'False')
     return
+
+def delete_docker_new(app_logger, uuidcode, servername, app_urls):
+    app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))
+    docker_master_token = utils_file_loads.get_docker_master_token()
+    s_email, s_servername = servername.split(':')
+    headers = {
+        "Intern-Authorization": docker_master_token,
+        "uuidcode": uuidcode,
+        "email": s_email,
+        "servername": s_servername
+        }
+    urls = utils_file_loads.get_urls()
+    url = urls.get('dockermaster', {}).get('url_jlab', '<no_jlab_url_defined>')
+    with closing(requests.delete(url,
+                                 headers=headers,
+                                 verify=False,
+                                 timeout=30)) as r:
+        app_logger.debug("uuidcode={} - DockerMaster Response: {} {}".format(uuidcode, r.status_code, r.text))
+        if r.status_code != 202:
+            app_logger.error("uuidcode={} - Could not Delete JupyterLab via DockerMaster".format(uuidcode))
+    # Kill the tunnel
+    tunnel_info = { "servername": s_servername }
+    try:
+        app_logger.debug("uuidcode={} - Close ssh tunnel".format(uuidcode))
+        tunnel_communication.close(app_logger,
+                                   uuidcode,
+                                   app_urls.get('tunnel', {}).get('url_tunnel'),
+                                   tunnel_info)
+    except:
+        app_logger.exception("uuidcode={} - Could not stop tunnel. tunnel_info: {} {}".format(uuidcode, tunnel_info, app_urls.get('tunnel', {}).get('url_tunnel')))
+
 
 def delete_docker(app_logger, uuidcode, servername, docker_delete_folder):
     app_logger.trace("uuidcode={} - Try to delete docker container named: {}".format(uuidcode, servername))

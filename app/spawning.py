@@ -15,8 +15,8 @@ from app import utils_db
 
 
 # With this class we can change the value of the column "spawning" in the database, for a specific servername.
-# If J4J_Worker is done with starting the JupyterLab, it will call this endpoint to tell J4J_Orchestrator, that the JupyterLab is running.
-# Otherwise J4J_Orchestrator would ask J4J_Worker in another thread, if the JupyterLab is running. If this is not the case (because the start
+# If J4J_UNICORE is done with starting the JupyterLab, it will call this endpoint to tell J4J_Orchestrator, that the JupyterLab is running.
+# Otherwise J4J_Orchestrator would ask J4J_UNICORE in another thread, if the JupyterLab is running. If this is not the case (because the start
 # is not finished yet) the starting process would be canceled 
 class SpawningHandler(Resource):
     def post(self):

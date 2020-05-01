@@ -9,7 +9,7 @@ from flask_restful import Resource
 from flask import current_app as app
 from threading import Thread
 
-from app import utils_common, jobs_threads_worker
+from app import utils_common, jobs_threads_unicore
 from app import jobs_threads
 
 class JobHandler(Resource):
@@ -34,7 +34,7 @@ class JobHandler(Resource):
                 request_headers['tokenurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2/token"
             if not request_headers.get('authorizeurl', None):
                 request_headers['authorizeurl'] = "https://unity-jsc.fz-juelich.de/jupyter-oauth2-as/oauth2-authz"
-            app.log.debug("uuidcode={} - Start Thread to communicate with worker".format(uuidcode))
+            app.log.debug("uuidcode={} - Start Thread to communicate with j4j_unicore".format(uuidcode))
             t = Thread(target=jobs_threads.get,
                        args=(app.log,
                              uuidcode,
@@ -59,7 +59,7 @@ class JobHandler(Resource):
                                        uuidcode,
                                        request.headers.get('intern-authorization', None))
     
-            app.log.debug("uuidcode={} - Start Thread to communicate with worker".format(uuidcode))
+            app.log.debug("uuidcode={} - Start Thread to communicate with j4j_unicore".format(uuidcode))
             request_headers = {}
             for key, value in request.headers.items():
                 if 'Token' in key: # refresh, jhub, access
@@ -76,10 +76,10 @@ class JobHandler(Resource):
                 request_json[key] = value
             if 'port' not in request_json.keys():
                 # Find a random port, that's not already used by Jupyter@JSC
-                request_json['port'] = jobs_threads_worker.random_port(app.log,
-                                                                       uuidcode,
-                                                                       app.database,
-                                                                       app.database_tunnel)
+                request_json['port'] = jobs_threads_unicore.random_port(app.log,
+                                                                        uuidcode,
+                                                                        app.database,
+                                                                        app.database_tunnel)
                 
                 if request_json['port'] == 0:
                     return  '{}'.format(request_json['port']), 539
