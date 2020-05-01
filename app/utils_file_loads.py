@@ -21,8 +21,8 @@ def get_j4j_tunnel_token():
         token = f.read().rstrip()
     return token
 
-def get_j4j_worker_token():
-    with open('/etc/j4j/j4j_mount/j4j_token/worker.token', 'r') as f:
+def get_j4j_unicore_token():
+    with open('/etc/j4j/j4j_mount/j4j_token/unicore.token', 'r') as f:
         token = f.read().rstrip()
     return token
 

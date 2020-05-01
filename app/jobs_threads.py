@@ -4,7 +4,7 @@ Created on May 13, 2019
 @author: Tim Kreuzer
 '''
 
-from app import jobs_threads_docker, jobs_threads_worker, utils_common
+from app import jobs_threads_docker, jobs_threads_unicore, utils_common
 from app import utils_db
 from app import utils_hub_update
 
@@ -106,15 +106,15 @@ def get(app_logger, uuidcode, request_headers, app_urls, app_database):
                                   app_database,
                                   'False')
             else:
-                # Let's J4J_Worker do the work. We just call it.
-                jobs_threads_worker.check_unicore_job_status(app_logger,
-                                                             uuidcode,
-                                                             app_urls,
-                                                             app_database,
-                                                             request_headers,
-                                                             request_headers.get('escapedusername'),
-                                                             request_headers.get('servername'),
-                                                             info)
+                # Let's J4J_UNICORE do the work. We just call it.
+                jobs_threads_unicore.check_unicore_job_status(app_logger,
+                                                              uuidcode,
+                                                              app_urls,
+                                                              app_database,
+                                                              request_headers,
+                                                              request_headers.get('escapedusername'),
+                                                              request_headers.get('servername'),
+                                                              info)
         except:
             app_logger.exception("Could not check status")
             # Unblock this server for other calls
@@ -169,12 +169,12 @@ def post(app_logger, uuidcode, request_headers, request_json, app_urls, app_data
                                   app_database,
                                   'False')
         else:
-            jobs_threads_worker.start_unicore_job(app_logger,
-                                                  uuidcode,
-                                                  request_headers,
-                                                  request_json,
-                                                  app_urls,
-                                                  app_database)
+            jobs_threads_unicore.start_unicore_job(app_logger,
+                                                   uuidcode,
+                                                   request_headers,
+                                                   request_json,
+                                                   app_urls,
+                                                   app_database)
     except:
         app_logger.exception("Jobs_Threads failed: Bugfix required")
     return
@@ -212,21 +212,21 @@ def delete(app_logger, uuidcode, request_headers, app_urls, app_database):
                                                       app_urls)
                 continue
             else:
-                headers, delete_header = jobs_threads_worker.delete_job(app_logger,
-                                                                        uuidcode,
-                                                                        request_headers,
-                                                                        delete_header,
-                                                                        app_urls,
-                                                                        system,
-                                                                        kernelurl,
-                                                                        filedir,
-                                                                        port,
-                                                                        account,
-                                                                        project)
+                headers, delete_header = jobs_threads_unicore.delete_job(app_logger,
+                                                                         uuidcode,
+                                                                         request_headers,
+                                                                         delete_header,
+                                                                         app_urls,
+                                                                         system,
+                                                                         kernelurl,
+                                                                         filedir,
+                                                                         port,
+                                                                         account,
+                                                                         project)
         except:
             if docker:
                 app_logger.exception("uuidcode={} - Could not delete docker container".format(uuidcode))
             else:
-                app_logger.exception("uuidcode={} - J4J_Worker communication failed. {}".format(uuidcode, server))
+                app_logger.exception("uuidcode={} - J4J_UNICORE communication failed. {}".format(uuidcode, server))
 
     return headers

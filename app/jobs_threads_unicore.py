@@ -4,21 +4,21 @@ import requests
 
 from contextlib import closing
 
-from app import jobs_threads_worker_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
+from app import jobs_threads_unicore_utils, utils_hub_update, utils_common, jobs_threads, utils_db,\
     utils_file_loads
 from app.utils_common import SpawnException
 
 def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, request_headers, escapedusername, servername, server_info):
     try:
         app_logger.trace("uuidcode={} - Call Create_get_header with: {} {} {} {} {}".format(uuidcode, request_headers, app_urls.get('hub', {}).get('url_proxy_route'), app_urls.get('hub', {}).get('url_token'), escapedusername, servername))
-        worker_header = jobs_threads_worker_utils.create_get_header(app_logger,
-                                                                    uuidcode,
-                                                                    request_headers,
-                                                                    app_urls.get('hub', {}).get('url_proxy_route'),
-                                                                    app_urls.get('hub', {}).get('url_token'),
-                                                                    escapedusername,
-                                                                    servername,
-                                                                    app_database)
+        unicore_header = jobs_threads_unicore_utils.create_get_header(app_logger,
+                                                                      uuidcode,
+                                                                      request_headers,
+                                                                      app_urls.get('hub', {}).get('url_proxy_route'),
+                                                                      app_urls.get('hub', {}).get('url_token'),
+                                                                      escapedusername,
+                                                                      servername,
+                                                                      app_database)
     except:
         app_logger.exception("uuidcode={} - Could not create Header. Do nothing and return. {} {}".format(uuidcode, utils_common.remove_secret(request_headers), app_urls.get('hub', {}).get('url_token')))
         utils_db.set_skip(app_logger,
@@ -28,27 +28,27 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                           'False')
         return
     try:
-        # call worker get (fire and forget)
-        worker_header['kernelurl'] = server_info.get('kernelurl')
-        worker_header['filedir'] = server_info.get('filedir')
-        worker_header['system'] = server_info.get('system')
-        worker_header['port'] = server_info.get('port')
-        worker_header['account'] = server_info.get('account')
-        worker_header['project'] = server_info.get('project')
-        worker_header['jhubtoken'] = server_info.get('jhubtoken')
-        worker_header['spawning'] = server_info.get('spawning')
-        worker_header['pollspawner'] = request_headers.get('pollspawner', 'false')
+        # call unicore get (fire and forget)
+        unicore_header['kernelurl'] = server_info.get('kernelurl')
+        unicore_header['filedir'] = server_info.get('filedir')
+        unicore_header['system'] = server_info.get('system')
+        unicore_header['port'] = server_info.get('port')
+        unicore_header['account'] = server_info.get('account')
+        unicore_header['project'] = server_info.get('project')
+        unicore_header['jhubtoken'] = server_info.get('jhubtoken')
+        unicore_header['spawning'] = server_info.get('spawning')
+        unicore_header['pollspawner'] = request_headers.get('pollspawner', 'false')
     
         method = "GET"
-        method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
-                       "headers":worker_header,
+        method_args = {"url": app_urls.get('unicore', {}).get('url_jobs'),
+                       "headers":unicore_header,
                        "certificate": False,
                        "fire_and_forget": True}
-        app_logger.info("uuidcode={} - Get J4J_Worker. Kernel_url: {}".format(uuidcode, worker_header['kernelurl']))
-        jobs_threads_worker_utils.communicate(app_logger,
-                                              uuidcode,
-                                              method,
-                                              method_args)
+        app_logger.info("uuidcode={} - Get J4J_UNICORE. Kernel_url: {}".format(uuidcode, unicore_header['kernelurl']))
+        jobs_threads_unicore_utils.communicate(app_logger,
+                                               uuidcode,
+                                               method,
+                                               method_args)
 
     except:
         utils_db.set_skip(app_logger,
@@ -56,7 +56,7 @@ def check_unicore_job_status(app_logger, uuidcode, app_urls, app_database, reque
                           request_headers.get('servername'),
                           app_database,
                           'False')
-        app_logger.exception("uuidcode={} - J4J_Worker communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - J4J_UNICORE communication failed. {} {}".format(uuidcode, method, utils_common.remove_secret(method_args)))
 
 
 def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_urls, app_database):
@@ -103,22 +103,22 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
     except:
         app_logger.exception("uuidcode={}, Could not check if it's a cron job server".format(uuidcode))
     # Delete all server with this name (there should be none, but better safe than sorry)
-    j4j_worker_response_header = jobs_threads.delete(app_logger,
-                                                     uuidcode,
-                                                     request_headers,
-                                                     app_urls,
-                                                     app_database)
+    j4j_unicore_response_header = jobs_threads.delete(app_logger,
+                                                      uuidcode,
+                                                      request_headers,
+                                                      app_urls,
+                                                      app_database)
     # All duplicated servers are deleted from the database and stopped
-    app_logger.trace('uuidcode={} - J4J_Worker_response_header: {}'.format(uuidcode, j4j_worker_response_header))
+    app_logger.trace('uuidcode={} - J4J_UNICORE_response_header: {}'.format(uuidcode, j4j_unicore_response_header))
     try:
-        j4j_worker_header = jobs_threads_worker_utils.create_header(app_logger,
-                                                                    uuidcode,
-                                                                    request_headers,
-                                                                    app_urls.get('hub', {}).get('url_proxy_route'),
-                                                                    app_urls.get('hub', {}).get('url_token'),
-                                                                    request_headers.get('escapedusername'),
-                                                                    request_headers.get('servername'),
-                                                                    app_database)
+        j4j_unicore_header = jobs_threads_unicore_utils.create_header(app_logger,
+                                                                      uuidcode,
+                                                                      request_headers,
+                                                                      app_urls.get('hub', {}).get('url_proxy_route'),
+                                                                      app_urls.get('hub', {}).get('url_token'),
+                                                                      request_headers.get('escapedusername'),
+                                                                      request_headers.get('servername'),
+                                                                      app_database)
     except (SpawnException, Exception) as e:
         if type(e).__name__ == "SpawnException":
             error_msg = str(e)
@@ -134,59 +134,59 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                 request_headers.get('escapedusername'),
                                 request_headers.get('servername'))
         return
-    # update with Infos of j4j_worker delete
-    if 'accesstoken' in j4j_worker_response_header:
-        j4j_worker_header['accesstoken'] = j4j_worker_response_header['accesstoken']
-        j4j_worker_header['expire'] = j4j_worker_response_header['expire']
+    # update with Infos of j4j_unicore delete
+    if 'accesstoken' in j4j_unicore_response_header:
+        j4j_unicore_header['accesstoken'] = j4j_unicore_response_header['accesstoken']
+        j4j_unicore_header['expire'] = j4j_unicore_response_header['expire']
         utils_hub_update.token(app_logger,
                                uuidcode,
                                app_urls.get('hub', {}).get('url_proxy_route'),
                                app_urls.get('hub', {}).get('url_token'),
                                request_headers['jhubtoken'],
-                               j4j_worker_response_header['accesstoken'],
-                               j4j_worker_response_header['expire'],
+                               j4j_unicore_response_header['accesstoken'],
+                               j4j_unicore_response_header['expire'],
                                request_headers.get('escapedusername'),
                                request_headers.get('servername'))
 
-    if 'session' in j4j_worker_response_header:
-        j4j_worker_header['X-UNICORE-SecuritySession'] = j4j_worker_response_header['X-UNICORE-SecuritySession']
-    app_logger.trace("uuidcode={} - J4J_Worker_Header: {}".format(uuidcode, j4j_worker_header))
+    if 'session' in j4j_unicore_response_header:
+        j4j_unicore_header['X-UNICORE-SecuritySession'] = j4j_unicore_response_header['X-UNICORE-SecuritySession']
+    app_logger.trace("uuidcode={} - J4J_UNICORE_Header: {}".format(uuidcode, j4j_unicore_header))
 
-    j4j_worker_json = jobs_threads_worker_utils.create_json(app_logger,
-                                                            uuidcode,
-                                                            request_json)
-    app_logger.trace("uuidcode={} - J4J_Worker_Json: {}".format(uuidcode, j4j_worker_json))
-    # Call worker post
+    j4j_unicore_json = jobs_threads_unicore_utils.create_json(app_logger,
+                                                              uuidcode,
+                                                              request_json)
+    app_logger.trace("uuidcode={} - J4J_UNICORE_Json: {}".format(uuidcode, j4j_unicore_json))
+    # Call UNICORE post
     try:
         method = "POST"
         if request_json.get('service', '').lower() == 'dashboard':
-            url = app_urls.get('worker', {}).get('url_dashboards')
+            url = app_urls.get('unicore', {}).get('url_dashboards')
         else:
-            url = app_urls.get('worker', {}).get('url_jobs')
+            url = app_urls.get('unicore', {}).get('url_jobs')
         method_args = {"url": url,
-                       "headers": j4j_worker_header,
-                       "json": j4j_worker_json,
+                       "headers": j4j_unicore_header,
+                       "json": j4j_unicore_json,
                        "certificate": False}
-        app_logger.info("uuidcode={} - Post J4J_Worker".format(uuidcode))
-        text, status_code, headers = jobs_threads_worker_utils.communicate(app_logger,
-                                                                           uuidcode,
-                                                                           method,
-                                                                           method_args)
+        app_logger.info("uuidcode={} - Post J4J_UNICORE".format(uuidcode))
+        text, status_code, headers = jobs_threads_unicore_utils.communicate(app_logger,
+                                                                            uuidcode,
+                                                                            method,
+                                                                            method_args)
         if status_code != 201:
-            app_logger.warning("uuidcode={} - J4J_Worker Post failed. J4J_Worker Response: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
-            raise Exception("{} - J4J_Worker Post failed. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
+            app_logger.warning("uuidcode={} - J4J_UNICORE Post failed. J4J_UNICORE Response: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
+            raise Exception("{} - J4J_UNICORE Post failed. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
         else:
-            app_logger.debug("uuidcode={} - J4J_Worker communication successful: {} {}".format(uuidcode, text, status_code))
-            app_logger.trace("uuidcode={} - J4J_Worker communication successful: {}".format(uuidcode, headers))
-            j4j_worker_header['kernelurl'] = headers['kernelurl']
-            j4j_worker_header['filedir'] = headers['filedir']
-            j4j_worker_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
+            app_logger.debug("uuidcode={} - J4J_UNICORE communication successful: {} {}".format(uuidcode, text, status_code))
+            app_logger.trace("uuidcode={} - J4J_UNICORE communication successful: {}".format(uuidcode, headers))
+            j4j_unicore_header['kernelurl'] = headers['kernelurl']
+            j4j_unicore_header['filedir'] = headers['filedir']
+            j4j_unicore_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
     except (SpawnException, Exception) as e:
         if type(e).__name__ == "SpawnException":
             error_msg = str(e)
         else:
             error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system'))
-        app_logger.exception("uuidcode={} - error_msg: {} -  J4J_Worker communication failed. {} {}".format(uuidcode, error_msg, method, utils_common.remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - error_msg: {} -  J4J_UNICORE communication failed. {} {}".format(uuidcode, error_msg, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
@@ -204,14 +204,14 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                           request_headers,
                           request_json,
                           app_database,
-                          j4j_worker_header['kernelurl'],
-                          j4j_worker_header['filedir'])
+                          j4j_unicore_header['kernelurl'],
+                          j4j_unicore_header['filedir'])
 
-    # call worker get (fire and forget)
-    j4j_worker_header['servername'] = request_json.get('servername')
-    j4j_worker_header['system'] = request_json.get('system')
-    j4j_worker_header['port'] = str(request_json.get('port'))
-    j4j_worker_header['spawnget'] = "True"
+    # call unicore get (fire and forget)
+    j4j_unicore_header['servername'] = request_json.get('servername')
+    j4j_unicore_header['system'] = request_json.get('system')
+    j4j_unicore_header['port'] = str(request_json.get('port'))
+    j4j_unicore_header['spawnget'] = "True"
     try:
         utils_hub_update.status(app_logger,
                                 uuidcode,
@@ -225,21 +225,21 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
         app_logger.warning("uuidcode={} - Could not update status for JupyterHub".format(uuidcode))
     try:
         method = "GET"
-        method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
-                       "headers": j4j_worker_header,
+        method_args = {"url": app_urls.get('unicore', {}).get('url_jobs'),
+                       "headers": j4j_unicore_header,
                        "certificate": False,
                        "fire_and_forget": True}
-        app_logger.info("uuidcode={} - Get J4J_Worker".format(uuidcode))
-        jobs_threads_worker_utils.communicate(app_logger,
-                                              uuidcode,
-                                              method,
-                                              method_args)
+        app_logger.info("uuidcode={} - Get J4J_UNICORE".format(uuidcode))
+        jobs_threads_unicore_utils.communicate(app_logger,
+                                               uuidcode,
+                                               method,
+                                               method_args)
     except (SpawnException, Exception) as e:
         if type(e).__name__ == "SpawnException":
             error_msg = str(e)
         else:
             error_msg = "A mandatory backend service for {} had a problem. An administrator is informed".format(request_json.get('system'))
-        app_logger.exception("uuidcode={} - error-msg: {} - J4J_Worker communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, error_msg, method, utils_common.remove_secret(method_args)))
+        app_logger.exception("uuidcode={} - error-msg: {} - J4J_UNICORE communication failed. Send errorcode 526 to JupyterHub.cancel. {} {}".format(uuidcode, error_msg, method, utils_common.remove_secret(method_args)))
         utils_hub_update.cancel(app_logger,
                                 uuidcode,
                                 app_urls.get('hub', {}).get('url_proxy_route'),
@@ -249,8 +249,8 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                                 request_headers.get('escapedusername'),
                                 request_headers.get('servername'))
         try:
-            request_headers['kernelurl'] = j4j_worker_header['kernelurl']
-            request_headers['filedir'] = j4j_worker_header['filedir']
+            request_headers['kernelurl'] = j4j_unicore_header['kernelurl']
+            request_headers['filedir'] = j4j_unicore_header['filedir']
             request_headers['servername'] = request_json.get('servername')
             request_headers['system'] = request_json.get('system')
             request_headers['port'] = str(request_json.get('port'))
@@ -259,21 +259,21 @@ def start_unicore_job(app_logger, uuidcode, request_headers, request_json, app_u
                    request_headers,
                    app_database,
                    app_urls.get('tunnel', {}).get('url_tunnel'),
-                   app_urls.get('worker', {}).get('url_jobs'),
+                   app_urls.get('unicore', {}).get('url_jobs'),
                    app_urls.get('docker', {}).get('delete_folder'),
                    app_urls.get('hub', {}).get('url_proxy_route'),
                    app_urls.get('hub', {}).get('url_token'))
         except:
-            app_logger.exception("uuidcode={} - Could not delete/destroy Job via J4J_Worker. {}".format(uuidcode, utils_common.remove_secret(request_headers)))
+            app_logger.exception("uuidcode={} - Could not delete/destroy Job via J4J_UNICORE. {}".format(uuidcode, utils_common.remove_secret(request_headers)))
 
 
 def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, system, kernelurl, filedir, port, account, project):
-    # Create Header to communicate with J4J_Worker
+    # Create Header to communicate with J4J_UNICORE
     if len(delete_header) == 0:
         # It's the first server with this name we want to delete. So we have to load the basic stuff
         for key, value in request_headers.items():
             delete_header[key] = value
-        delete_header['Intern-Authorization'] = utils_file_loads.get_j4j_worker_token()
+        delete_header['Intern-Authorization'] = utils_file_loads.get_j4j_unicore_token()
     delete_header['system'] = system
     delete_header['kernelurl'] = kernelurl
     delete_header['filedir'] = filedir
@@ -283,25 +283,25 @@ def delete_job(app_logger, uuidcode, request_headers, delete_header, app_urls, s
     delete_header["tokenurl"] = request_headers.get("tokenurl")
     delete_header["authorizeurl"] = request_headers.get("authorizeurl")
 
-    # Send DELETE to J4J_Worker
+    # Send DELETE to J4J_UNICORE
     method = "DELETE"
-    method_args = {"url": app_urls.get('worker', {}).get('url_jobs'),
+    method_args = {"url": app_urls.get('unicore', {}).get('url_jobs'),
                    "headers": delete_header,
                    "certificate": False}
-    app_logger.info("uuidcode={} - Delete J4J_Worker".format(uuidcode))
-    text, status_code, headers = jobs_threads_worker_utils.communicate(app_logger,
-                                                                       uuidcode,
-                                                                       method,
-                                                                       method_args)
+    app_logger.info("uuidcode={} - Delete J4J_UNICORE".format(uuidcode))
+    text, status_code, headers = jobs_threads_unicore_utils.communicate(app_logger,
+                                                                        uuidcode,
+                                                                        method,
+                                                                        method_args)
     if status_code == 200:
-        app_logger.debug("uuidcode={} - J4J_Worker communication successful: {} {}".format(uuidcode, text, status_code))
-        app_logger.trace("uuidcode={} - J4J_Worker communication successful: {}".format(uuidcode, headers))
+        app_logger.debug("uuidcode={} - J4J_UNICORE communication successful: {} {}".format(uuidcode, text, status_code))
+        app_logger.trace("uuidcode={} - J4J_UNICORE communication successful: {}".format(uuidcode, headers))
         delete_header['accesstoken'] = headers['accesstoken']
         delete_header['expire'] = headers['expire']
         delete_header['X-UNICORE-SecuritySession'] = headers['X-UNICORE-SecuritySession']
     else:
-        app_logger.warning("uuidcode={} - J4J_Worker communication not successful: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
-        raise Exception("{} - J4J_Worker communication not successful. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
+        app_logger.warning("uuidcode={} - J4J_UNICORE communication not successful: {} {} {}".format(uuidcode, text, status_code, utils_common.remove_secret(headers)))
+        raise Exception("{} - J4J_UNICORE communication not successful. Throw exception because of wrong status_code: {}".format(uuidcode, status_code))
     return headers, delete_header
 
 

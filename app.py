@@ -108,7 +108,7 @@ while True:
     sleep(s/100)
 
 # Add database and urls to the FlaskApp. If we change one of these, we have to restart the processes.
-# Init: Wait until J4J_Worker is running. Otherwise we can't run J4J_Orchestrator correctly.
+# Init: Wait until J4J_UNICORE is running. Otherwise we can't run J4J_Orchestrator correctly.
 class FlaskApp(Flask):
     log = None
     with open('/etc/j4j/j4j_mount/j4j_orchestrator/database.json') as f:
@@ -119,17 +119,17 @@ class FlaskApp(Flask):
         urls = json.load(f)
     def __init__(self, *args, **kwargs):
         self.log = logging.getLogger('J4J_Orchestrator')
-        health_url = self.urls.get('worker', {}).get('url_health')
-        self.log.info("StartUp - Check if J4J_Worker service is running")
+        health_url = self.urls.get('unicore', {}).get('url_health')
+        self.log.info("StartUp - Check if J4J_UNICORE service is running")
         while True:
             try:
                 with closing(requests.get(health_url, headers={}, verify=False, timeout=5)) as r:
                     if r.status_code == 200:
-                        self.log.debug("StartUp - J4J_Worker answered with 200")
+                        self.log.debug("StartUp - J4J_UNICORE answered with 200")
                         break
             except:
-                self.log.exception("Exception while attempting to connect to J4J_Worker")
-            self.log.debug("StartUp - Could not reach J4J_Worker service. Try again in 5 seconds")
+                self.log.exception("Exception while attempting to connect to J4J_UNICORE")
+            self.log.debug("StartUp - Could not reach J4J_UNICORE service. Try again in 5 seconds")
             sleep(5)
         super(FlaskApp, self).__init__(*args, **kwargs)
 
