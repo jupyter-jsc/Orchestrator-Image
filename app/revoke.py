@@ -83,7 +83,7 @@ class RevokeToken(Resource):
                                "certificate": cert}
                 for token_dict in to_revoke_list:
                     token_type = token_dict.get('type', 'oauth2Access')
-                    if token_type == 'oauth2Access':
+                    if token_type in ['oauth2Access', 'oauth2Code']:
                         token_type = 'access_token'
                     elif token_type == 'oauth2Refresh':
                         token_type = 'refresh_token'
